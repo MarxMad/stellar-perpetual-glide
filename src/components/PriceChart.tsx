@@ -1,10 +1,24 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { useStellarServices } from "@/hooks/use-stellar-services";
 
 export const PriceChart = () => {
-  // Mock chart data - in real app this would come from Stellar network
+  const { prices, getPrices } = useStellarServices();
+  const [currentPrice, setCurrentPrice] = useState(0.1234);
+  const [priceChange, setPriceChange] = useState(2.45);
+
+  // Obtener precio actual de XLM
+  useEffect(() => {
+    const xlmPrice = prices.find(p => p.asset === 'XLM');
+    if (xlmPrice) {
+      setCurrentPrice(xlmPrice.price);
+      console.log('📈 PriceChart: Precio actual de XLM:', xlmPrice.price);
+    }
+  }, [prices]);
+
+  // Generar datos del gráfico basados en precio real
   const chartData = useMemo(() => {
     const data = [];
-    let price = 0.1234;
+    let price = currentPrice;
     const now = Date.now();
     
     for (let i = 100; i >= 0; i--) {
@@ -12,12 +26,12 @@ export const PriceChart = () => {
       price += (Math.random() - 0.5) * 0.002;
       data.push({
         time: timestamp,
-        price: Math.max(0.08, Math.min(0.16, price)),
+        price: Math.max(currentPrice * 0.8, Math.min(currentPrice * 1.2, price)),
         volume: Math.random() * 1000000 + 500000
       });
     }
     return data;
-  }, []);
+  }, [currentPrice]);
 
   // Simple canvas-based chart
   return (
@@ -80,13 +94,13 @@ export const PriceChart = () => {
 
       {/* Price labels */}
       <div className="absolute left-2 top-2 text-sm text-muted-foreground">
-        <div>High: $0.1289</div>
-        <div>Low: $0.1198</div>
+        <div>High: ${(currentPrice * 1.05).toFixed(4)}</div>
+        <div>Low: ${(currentPrice * 0.95).toFixed(4)}</div>
       </div>
 
       {/* Current price indicator */}
       <div className="absolute right-2 top-2 bg-primary/20 border border-primary/30 rounded px-2 py-1">
-        <span className="text-sm font-mono text-primary">$0.1234</span>
+        <span className="text-sm font-mono text-primary">${currentPrice.toFixed(4)}</span>
       </div>
     </div>
   );

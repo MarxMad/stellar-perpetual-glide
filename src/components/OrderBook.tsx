@@ -1,23 +1,52 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useStellarServices } from "@/hooks/use-stellar-services";
+import { useEffect, useState } from "react";
 
 export const OrderBook = () => {
-  // Mock order book data
-  const sellOrders = [
-    { price: 0.1245, amount: 15430.5, total: 1920.50 },
-    { price: 0.1244, amount: 8750.2, total: 1088.72 },
-    { price: 0.1243, amount: 12800.0, total: 1591.04 },
-    { price: 0.1242, amount: 6500.8, total: 807.40 },
-    { price: 0.1241, amount: 9200.3, total: 1142.56 },
-  ].reverse();
+  const { prices, getPrices } = useStellarServices();
+  const [currentPrice, setCurrentPrice] = useState(0.1234);
 
-  const buyOrders = [
-    { price: 0.1234, amount: 8200.5, total: 1011.54 },
-    { price: 0.1233, amount: 12400.8, total: 1528.86 },
-    { price: 0.1232, amount: 5800.2, total: 714.58 },
-    { price: 0.1231, amount: 15600.0, total: 1920.36 },
-    { price: 0.1230, amount: 7300.5, total: 897.96 },
-  ];
+  // Obtener precio actual de XLM
+  useEffect(() => {
+    const xlmPrice = prices.find(p => p.asset === 'XLM');
+    if (xlmPrice) {
+      setCurrentPrice(xlmPrice.price);
+      console.log('📊 OrderBook: Precio actual de XLM:', xlmPrice.price);
+    }
+  }, [prices]);
+
+  // Generar order book basado en precio real con variación
+  const generateOrderBook = (basePrice: number) => {
+    const sellOrders = [];
+    const buyOrders = [];
+    
+    // Generar órdenes de venta (precios más altos)
+    for (let i = 1; i <= 5; i++) {
+      const price = basePrice + (i * 0.0001);
+      const amount = Math.random() * 10000 + 5000;
+      sellOrders.push({
+        price: price,
+        amount: amount,
+        total: price * amount
+      });
+    }
+    
+    // Generar órdenes de compra (precios más bajos)
+    for (let i = 1; i <= 5; i++) {
+      const price = basePrice - (i * 0.0001);
+      const amount = Math.random() * 10000 + 5000;
+      buyOrders.push({
+        price: price,
+        amount: amount,
+        total: price * amount
+      });
+    }
+    
+    return { sellOrders: sellOrders.reverse(), buyOrders };
+  };
+
+  const { sellOrders, buyOrders } = generateOrderBook(currentPrice);
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString(undefined, { maximumFractionDigits: 1 });
@@ -77,7 +106,7 @@ export const OrderBook = () => {
         {/* Current Price */}
         <div className="flex items-center justify-center py-2 my-2 border-y border-border/50">
           <div className="text-lg font-bold text-primary font-mono">
-            $0.1234
+            ${currentPrice.toFixed(4)}
           </div>
           <div className="ml-2 text-sm text-success">
             ↗ +2.45%

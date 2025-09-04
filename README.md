@@ -1,73 +1,197 @@
-# Welcome to your Lovable project
+# Stellar Perpetual Futures Platform
 
-## Project info
+Una plataforma de trading de futuros perpetuos construida en Stellar usando Soroban, integrada con Reflector Oracle y KALE Rewards.
 
-**URL**: https://lovable.dev/projects/d63d9eb5-10c4-492a-bc2a-5074b1ad3b18
+## 🚀 Características
 
-## How can I edit this code?
+- **Trading de Futuros Perpetuos** con funding rates dinámicos
+- **Integración con Reflector Oracle** para precios en tiempo real
+- **Sistema de Recompensas KALE** para staking y tareas
+- **Conexión de Wallets** usando StellarWalletsKit
+- **Smart Contracts** desplegados en Stellar Testnet
+- **Interfaz Moderna** construida con React y Tailwind CSS
 
-There are several ways of editing your application.
+## 📋 Contratos Desplegados
 
-**Use Lovable**
+### 🎯 Perpetual Futures Contract (Nuestro Contrato)
+- **Contract ID**: `CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R`
+- **Red**: Stellar Testnet
+- **Estado**: ✅ Activo y funcionando
+- **Explorer**: https://stellar.expert/explorer/testnet/contract/CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R
+- **Funciones**:
+  - `initialize(oracle_address)` - Inicializar con Reflector Oracle
+  - `get_oracle_address()` - Obtener dirección del oráculo
+  - `calculate_funding_rate(spot_price, futures_price)` - Calcular funding rate
+  - `is_price_valid(price)` - Validar precio
+  - `version()` - Obtener versión del contrato
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d63d9eb5-10c4-492a-bc2a-5074b1ad3b18) and start prompting.
+### 🔮 Reflector Oracle Contract
+- **Contract ID**: `CAVLP5DH2GJPZMVO7IJY4CVOD5MWEFTJFVPD2YY2FQXOQHRGHK4D6HLP`
+- **Red**: Stellar Testnet
+- **Tipo**: Oracle de precios push-based
+- **Documentación**: https://reflector.network/docs
+- **Estado**: ✅ Activo con datos reales
+- **Activos disponibles**: XLM, USDC, BTC, ETH, SOL, ADA
+- **Funciones principales**:
+  - `lastprice(asset)` - Último precio de un activo
+  - `twap(asset, records)` - Precio promedio ponderado por tiempo
+  - `x_last_price(base, quote)` - Precio cruzado entre activos
+  - `decimals()` - Decimales del oráculo
+  - `resolution()` - Resolución de tiempo (5 minutos)
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🌿 KALE Rewards Contract
+- **Contract ID**: `CA3D5KRYM6CB7OWQ6TWYRR3Z4T7GNZLKERYNZGGA5SOAOPIFY6YQGAXE`
+- **Red**: Stellar Testnet
+- **Tipo**: Sistema de recompensas proof-of-teamwork
+- **Documentación**: https://kaleonstellar.com/
+- **Funciones**:
+  - Staking de tokens KALE
+  - Completar tareas para recompensas
+  - Sistema de leaderboard
+  - Harvest de recompensas
 
-**Use your preferred IDE**
+## 🛠️ Configuración de Red
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```typescript
+// Configuración para Testnet
+export const STELLAR_CONFIG = {
+  network: Networks.TESTNET,
+  horizonUrl: 'https://horizon-testnet.stellar.org',
+  sorobanRpcUrl: 'https://soroban-testnet.stellar.org',
+  networkPassphrase: 'Test SDF Network ; September 2015',
+};
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📦 Instalación y Desarrollo
 
-Follow these steps:
+### Prerrequisitos
+- Node.js 18+
+- npm o yarn
+- Stellar CLI (para deployment de contratos)
+- Rust (para compilar smart contracts)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### Instalación
+```bash
+# Clonar el repositorio
 git clone <YOUR_GIT_URL>
+cd stellar-perpetual-glide
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Instalar dependencias
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar servidor de desarrollo
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Compilar Smart Contracts
+```bash
+cd src/contracts
+cargo build --target wasm32-unknown-unknown --release
+stellar contract optimize --wasm target/wasm32-unknown-unknown/release/perpetual_futures.wasm
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Desplegar en Testnet
+```bash
+cd src/contracts
+./deploy-testnet.sh
+```
 
-**Use GitHub Codespaces**
+## 🔧 Tecnologías Utilizadas
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Frontend
+- **React 18** - Framework de UI
+- **TypeScript** - Tipado estático
+- **Vite** - Build tool y dev server
+- **Tailwind CSS** - Framework de estilos
+- **shadcn/ui** - Componentes de UI
+- **StellarWalletsKit** - Integración de wallets
 
-## What technologies are used for this project?
+### Smart Contracts
+- **Rust** - Lenguaje de programación
+- **Soroban SDK** - SDK para contratos inteligentes
+- **Stellar CLI** - Herramientas de deployment
 
-This project is built with:
+### Integraciones
+- **Reflector Oracle** - Precios en tiempo real (Testnet: datos de prueba, Mainnet: precios reales)
+- **KALE Protocol** - Sistema de recompensas
+- **Stellar Testnet** - Red de pruebas
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📊 Estructura del Proyecto
 
-## How can I deploy this project?
+```
+src/
+├── components/          # Componentes de React
+│   ├── TradingDashboard.tsx
+│   ├── ReflectorOracle.tsx
+│   ├── FundingRates.tsx
+│   ├── KaleRewards.tsx
+│   └── ui/             # Componentes de shadcn/ui
+├── contracts/          # Smart contracts en Rust
+│   ├── lib.rs
+│   ├── simple_contract.rs
+│   ├── reflector.rs
+│   └── deploy-testnet.sh
+├── hooks/              # Custom React hooks
+│   ├── use-wallet-simple.ts
+│   └── use-stellar-services.ts
+├── lib/                # Utilidades y clientes
+│   ├── stellar.ts
+│   ├── reflector-client.ts
+│   ├── perpetual-contract-client.ts
+│   ├── reflector.ts
+│   └── kale.ts
+└── pages/              # Páginas de la aplicación
+    └── Index.tsx
+```
 
-Simply open [Lovable](https://lovable.dev/projects/d63d9eb5-10c4-492a-bc2a-5074b1ad3b18) and click on Share -> Publish.
+## 🧪 Testing
 
-## Can I connect a custom domain to my Lovable project?
+### Probar Integración Completa
+1. Ve a la pestaña **"Test"** en la aplicación
+2. Haz clic en **"Ejecutar Pruebas"**
+3. Verifica que todos los tests pasen:
+   - ✅ Reflector Oracle funcionando
+   - ✅ Nuestro contrato desplegado
+   - ✅ Cálculo de funding rates
+   - ✅ Conexión de wallet
 
-Yes, you can!
+### Probar Funciones del Contrato
+```bash
+# Obtener información del contrato
+stellar contract invoke --id CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R --source-account alice --network testnet -- get_oracle_address
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+# Calcular funding rate
+stellar contract invoke --id CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R --source-account alice --network testnet -- calculate_funding_rate --spot_price 1234000 --futures_price 1235000
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🔗 Enlaces Útiles
+
+- **Stellar Docs**: https://developers.stellar.org/
+- **Soroban Docs**: https://soroban.stellar.org/docs
+- **Reflector Network**: https://reflector.network/
+- **KALE Protocol**: https://kaleonstellar.com/
+- **Stellar Explorer**: https://stellar.expert/
+- **Testnet Explorer**: https://testnet.stellar.org/
+
+## 📝 Notas de Deployment
+
+### Transacciones Importantes
+- **Deployment**: https://stellar.expert/explorer/testnet/tx/e522ecc5b22f1f01e5b2466023aaea66891e6ee7b539d978f50380d5c1137ffb
+- **Inicialización**: Contrato inicializado con Reflector Oracle
+
+### Cuenta de Deployment
+- **Identidad**: `alice`
+- **Red**: Testnet
+- **Fondos**: Obtenidos via Friendbot
+
+## 🚀 Próximos Pasos
+
+1. **Implementar más funciones** en el smart contract
+2. **Agregar validaciones** de seguridad adicionales
+3. **Optimizar gas fees** y rendimiento
+4. **Preparar para Mainnet** deployment
+5. **Implementar más activos** y pares de trading
+6. **Agregar analytics** y métricas
+
+---
+
