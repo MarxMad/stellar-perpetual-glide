@@ -10,6 +10,8 @@ import { TrendingUp, TrendingDown, BarChart3, DollarSign, Activity, Coins, Calcu
 import { PriceChart } from "./PriceChart";
 import { TradingViewChart } from "./TradingViewChart";
 import { RealTimeChart } from "./RealTimeChart";
+import { TradingViewWidget } from "./TradingViewWidget";
+import { AssetSelector, AVAILABLE_ASSETS, Asset } from "./AssetSelector";
 import { OrderBook } from "./OrderBook";
 import { TradeForm } from "./TradeForm";
 import { PositionCard } from "./PositionCard";
@@ -27,6 +29,7 @@ import { WelcomePage } from "./WelcomePage";
 
 export const TradingDashboard = () => {
   const { prices, getPrices } = useStellarServices();
+  const [selectedAsset, setSelectedAsset] = useState<Asset>(AVAILABLE_ASSETS[0]); // XLM por defecto
   const [selectedPair, setSelectedPair] = useState("XLM/USDC");
   const [currentPrice, setCurrentPrice] = useState(0.1234);
   const [priceChange, setPriceChange] = useState(2.45);
@@ -64,6 +67,14 @@ export const TradingDashboard = () => {
   // Función para lanzar la app
   const handleLaunchApp = () => {
     setShowWelcome(false);
+  };
+
+  // Función para cambiar activo
+  const handleAssetChange = (asset: Asset) => {
+    setSelectedAsset(asset);
+    setSelectedPair(`${asset.symbol}/USDC`);
+    setCurrentPrice(asset.price);
+    setPriceChange(asset.change24h);
   };
 
   // Mostrar página de bienvenida si showWelcome es true
@@ -264,18 +275,43 @@ export const TradingDashboard = () => {
 
         {/* Tab de Trading - Layout como en la imagen de referencia */}
         <TabsContent value="trading" className="space-y-0 pb-20 xl:pb-8">
-          {/* Gráfico Principal - Full Width */}
+          {/* Selector de Activos */}
+          <div className="p-4 pb-2">
+            <AssetSelector 
+              selectedAsset={selectedAsset} 
+              onAssetChange={handleAssetChange}
+              className="max-w-md mx-auto"
+            />
+          </div>
+          
+          {/* Gráfico Principal - Full Width con TradingView */}
           <div className="p-4 pb-0">
             <Card className="bg-slate-900/90 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden shadow-2xl shadow-cyan-500/10 h-[400px] xl:h-[500px]">
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-teal-500/10"></div>
               <CardHeader className="relative z-10 p-4 border-b border-cyan-500/20">
-                <CardTitle className="flex items-center space-x-2 text-cyan-300 text-lg font-semibold">
-                  <BarChart3 className="w-5 h-5 text-cyan-400" />
-                  <span>XLM/USDC Price Chart</span>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2 text-cyan-300 text-lg font-semibold">
+                    <BarChart3 className="w-5 h-5 text-cyan-400" />
+                    <span>{selectedAsset.symbol}/USDC Price Chart</span>
+                  </CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10">
+                      {selectedAsset.category.toUpperCase()}
+                    </Badge>
+                    <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10">
+                      Live
+                    </Badge>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="relative z-10 p-4 h-[calc(100%-80px)]">
-                <RealTimeChart coinId="stellar" />
+              <CardContent className="relative z-10 p-0 h-[calc(100%-80px)]">
+                <TradingViewWidget 
+                  symbol={selectedAsset.tradingViewSymbol}
+                  theme="dark"
+                  interval="15"
+                  height="100%"
+                  width="100%"
+                />
               </CardContent>
             </Card>
           </div>
@@ -294,7 +330,7 @@ export const TradingDashboard = () => {
                       <span>Order Book</span>
                     </CardTitle>
                     <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10 px-3 py-1">
-                      XLM/USDC
+                      {selectedAsset.symbol}/USDC
                     </Badge>
                   </div>
                 </CardHeader>
