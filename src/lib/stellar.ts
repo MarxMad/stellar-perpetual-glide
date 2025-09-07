@@ -1,34 +1,46 @@
 import { Networks } from '@stellar/stellar-sdk';
 
-// Configuración de Stellar
-export const STELLAR_CONFIG = {
-  // Testnet para desarrollo
-  network: Networks.TESTNET,
-  // Mainnet para producción
-  // network: Networks.PUBLIC,
+// Función para obtener la configuración de Stellar basada en la red
+export const getStellarConfig = (network: 'mainnet' | 'testnet' = 'testnet') => {
+  const isTestnet = network === 'testnet';
   
-  // URLs de Horizon
-  horizonUrl: Networks.TESTNET === Networks.TESTNET 
-    ? 'https://horizon-testnet.stellar.org' 
-    : 'https://horizon.stellar.org',
-  
-  // URLs de Soroban RPC
-  sorobanRpcUrl: Networks.TESTNET === Networks.TESTNET 
-    ? 'https://soroban-testnet.stellar.org' 
-    : 'https://soroban.stellar.org',
+  return {
+    network: isTestnet ? Networks.TESTNET : Networks.PUBLIC,
+    horizonUrl: isTestnet 
+      ? 'https://horizon-testnet.stellar.org' 
+      : 'https://horizon.stellar.org',
+    sorobanRpcUrl: isTestnet 
+      ? 'https://soroban-testnet.stellar.org' 
+      : 'https://soroban.stellar.org',
+  };
 };
+
+// Configuración por defecto (testnet)
+export const STELLAR_CONFIG = getStellarConfig('testnet');
 
 // No necesitamos crear un cliente aquí, lo crearemos cuando sea necesario
 
-// Configuración de Reflector
-export const REFLECTOR_CONFIG = {
-  // Contrato de Reflector en testnet (datos de prueba)
-  contractId: 'CAVLP5DH2GJPZMVO7IJY4CVOD5MWEFTJFVPD2YY2FQXOQHRGHK4D6HLP', // Reflector Oracle Testnet (funciona)
-  // RPC URL para Soroban testnet
-  rpcUrl: 'https://soroban-testnet.stellar.org',
-  // Network passphrase para testnet
-  networkPassphrase: 'Test SDF Network ; September 2015',
+// Función para obtener la configuración de Reflector basada en la red
+export const getReflectorConfig = (network: 'mainnet' | 'testnet' = 'testnet') => {
+  const isTestnet = network === 'testnet';
+  
+  return {
+    // Contrato de Reflector
+    contractId: isTestnet 
+      ? 'CAVLP5DH2GJPZMVO7IJY4CVOD5MWEFTJFVPD2YY2FQXOQHRGHK4D6HLP' // Reflector Oracle Testnet
+      : 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHXCN3A3A', // Reflector Oracle Mainnet
+    // RPC URL
+    rpcUrl: isTestnet 
+      ? 'https://soroban-testnet.stellar.org'
+      : 'https://soroban.stellar.org',
+    // Network passphrase
+    networkPassphrase: isTestnet 
+      ? 'Test SDF Network ; September 2015'
+      : 'Public Global Stellar Network ; September 2015',
 };
+
+// Configuración por defecto de Reflector (testnet)
+export const REFLECTOR_CONFIG = getReflectorConfig('testnet');
 
 // Contratos de Reflector en Mainnet (para precios reales)
 export const REFLECTOR_MAINNET_CONFIG = {

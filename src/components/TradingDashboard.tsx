@@ -66,48 +66,7 @@ export const TradingDashboard = () => {
       position: 'relative',
       padding: '20px'
     }}>
-      <h1 style={{ color: 'white', fontSize: '32px', marginBottom: '20px' }}>
-        TRADING DASHBOARD
-      </h1>
       
-      <div style={{ 
-        backgroundColor: 'red', 
-        color: 'white', 
-        padding: '20px', 
-        marginBottom: '20px',
-        borderRadius: '8px'
-      }}>
-        <h2>DEBUG INFO</h2>
-        <p>Active Tab: {activeTab}</p>
-        <p>Current Price: ${currentPrice?.toFixed(4) || '0.0000'}</p>
-        <p>Show Welcome: {showWelcome.toString()}</p>
-      </div>
-      
-      <div style={{ 
-        backgroundColor: 'blue', 
-        color: 'white', 
-        padding: '20px', 
-        marginBottom: '20px',
-        borderRadius: '8px'
-      }}>
-        <h2>CONTENIDO PRINCIPAL</h2>
-        <p>Esta es la versión simplificada del dashboard</p>
-      </div>
-      
-      <button 
-        onClick={() => setShowWelcome(true)}
-        style={{ 
-          backgroundColor: 'green', 
-          color: 'white', 
-          padding: '15px 30px', 
-          fontSize: '18px',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer'
-        }}
-      >
-        VOLVER A WELCOME
-      </button>
       
       {/* Mobile Header */}
       <MobileHeader 
@@ -253,11 +212,7 @@ export const TradingDashboard = () => {
       {/* Main Content with Tabs */}
       <div className="relative z-10 min-h-[calc(100vh-200px)]">
         {/* Debug: Contenido simple */}
-        <div className="p-4 bg-blue-500 text-white m-4 rounded">
-          <h2 className="text-2xl font-bold">Trading Dashboard</h2>
-          <p>Active Tab: {activeTab}</p>
-          <p>Current Price: ${currentPrice}</p>
-        </div>
+        
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop Tabs */}

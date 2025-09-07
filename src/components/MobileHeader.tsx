@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { WalletConnectTech } from "./WalletConnectTech";
+import { NetworkToggle } from "./NetworkToggle";
 import { BarChart3, Wifi, WifiOff } from "lucide-react";
 
 interface MobileHeaderProps {
@@ -40,19 +41,20 @@ export const MobileHeader = ({ currentPrice, priceChange, isConnected }: MobileH
               </div>
             </div>
 
-            {/* Status de conexión */}
-            <div className="flex items-center">
+            {/* Status de conexión y red */}
+            <div className="flex items-center space-x-1">
               {isConnected ? (
-                <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10 text-xs px-2 py-1">
-                  <Wifi className="w-3 h-3 mr-1" />
-                  Live
+                <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10 text-xs px-1 py-0.5">
+                  <Wifi className="w-2 h-2 mr-1" />
+                  <span className="text-xs">Live</span>
                 </Badge>
               ) : (
-                <Badge variant="outline" className="border-red-500/50 text-red-400 bg-red-500/10 text-xs px-2 py-1">
-                  <WifiOff className="w-3 h-3 mr-1" />
-                  Offline
+                <Badge variant="outline" className="border-red-500/50 text-red-400 bg-red-500/10 text-xs px-1 py-0.5">
+                  <WifiOff className="w-2 h-2 mr-1" />
+                  <span className="text-xs">Offline</span>
                 </Badge>
               )}
+              <NetworkToggle />
             </div>
           </div>
 
