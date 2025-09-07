@@ -104,11 +104,11 @@ export const OrderBook = () => {
         </div>
 
         {/* Current Price */}
-        <div className="flex items-center justify-center py-2 my-2 border-y border-border/50">
-          <div className="text-lg font-bold text-primary font-mono">
+        <div className="flex items-center justify-center py-2 my-2 border-y border-cyan-500/20">
+          <div className="text-lg font-bold text-cyan-300 font-mono">
             ${currentPrice.toFixed(4)}
           </div>
-          <div className="ml-2 text-sm text-success">
+          <div className="ml-2 text-sm text-green-400">
             ↗ +2.45%
           </div>
         </div>

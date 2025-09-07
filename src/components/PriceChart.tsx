@@ -35,7 +35,7 @@ export const PriceChart = () => {
 
   // Simple canvas-based chart
   return (
-    <div className="relative w-full h-full min-h-[300px] bg-background/50 rounded-lg p-4">
+    <div className="relative w-full h-full min-h-[300px] bg-slate-900/50 rounded-lg p-4">
       <div className="absolute inset-0 flex items-center justify-center">
         {/* Mock Chart Visual */}
         <svg
@@ -49,9 +49,9 @@ export const PriceChart = () => {
               <path
                 d="M 40 0 L 0 0 0 40"
                 fill="none"
-                stroke="hsl(var(--chart-grid))"
+                stroke="#06b6d4"
                 strokeWidth="0.5"
-                opacity="0.3"
+                opacity="0.2"
               />
             </pattern>
           </defs>
@@ -67,16 +67,16 @@ export const PriceChart = () => {
               })
               .join(' ')}
             fill="none"
-            stroke="hsl(var(--primary))"
-            strokeWidth="2"
-            className="drop-shadow-sm"
+            stroke="#06b6d4"
+            strokeWidth="3"
+            className="drop-shadow-lg"
           />
 
           {/* Gradient fill */}
           <defs>
             <linearGradient id="priceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.05" />
+              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.05" />
             </linearGradient>
           </defs>
           <path
@@ -93,14 +93,14 @@ export const PriceChart = () => {
       </div>
 
       {/* Price labels */}
-      <div className="absolute left-2 top-2 text-sm text-muted-foreground">
+      <div className="absolute left-2 top-2 text-sm text-cyan-300">
         <div>High: ${(currentPrice * 1.05).toFixed(4)}</div>
         <div>Low: ${(currentPrice * 0.95).toFixed(4)}</div>
       </div>
 
       {/* Current price indicator */}
-      <div className="absolute right-2 top-2 bg-primary/20 border border-primary/30 rounded px-2 py-1">
-        <span className="text-sm font-mono text-primary">${currentPrice.toFixed(4)}</span>
+      <div className="absolute right-2 top-2 bg-cyan-500/20 border border-cyan-400/30 rounded px-2 py-1">
+        <span className="text-sm font-mono text-cyan-300">${currentPrice.toFixed(4)}</span>
       </div>
     </div>
   );

@@ -98,3 +98,171 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Animaciones futuristas para la aplicación */
+@keyframes neon-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(6, 182, 212, 0.5),
+                0 0 10px rgba(6, 182, 212, 0.3),
+                0 0 15px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.8),
+                0 0 20px rgba(6, 182, 212, 0.6),
+                0 0 30px rgba(6, 182, 212, 0.4);
+  }
+}
+
+@keyframes cyber-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.8;
+  }
+}
+
+@keyframes data-stream {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes hologram-flicker {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  25% {
+    opacity: 0.8;
+    filter: brightness(1.2);
+  }
+  50% {
+    opacity: 0.9;
+    filter: brightness(0.8);
+  }
+  75% {
+    opacity: 1;
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes slide-in-left {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-left {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes menu-item-appear {
+  0% {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Clases de animación */
+.neon-glow {
+  animation: neon-glow 2s ease-in-out infinite;
+}
+
+.cyber-pulse {
+  animation: cyber-pulse 3s ease-in-out infinite;
+}
+
+.data-stream {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-stream::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.3), transparent);
+  animation: data-stream 3s linear infinite;
+}
+
+.hologram-flicker {
+  animation: hologram-flicker 4s ease-in-out infinite;
+}
+
+.tech-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tech-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+}
+
+.animated-gradient {
+  background: linear-gradient(-45deg, #0ea5e9, #06b6d4, #14b8a6, #0ea5e9);
+  background-size: 400% 400%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+.mobile-menu-enter {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+.mobile-menu-exit {
+  animation: slide-out-left 0.3s ease-in;
+}
+
+.menu-item-animate {
+  animation: menu-item-appear 0.4s ease-out;
+}
+
+.mobile-hover {
+  transition: all 0.2s ease;
+}
+
+.mobile-hover:active {
+  transform: scale(0.98);
+  background-color: rgba(6, 182, 212, 0.1);
+}
