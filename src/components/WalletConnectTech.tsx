@@ -7,12 +7,14 @@ import {
   Copy, 
   CheckCircle, 
   AlertCircle,
-  Loader2
+  Loader2,
+  Shield,
+  Zap
 } from "lucide-react";
-import { useWalletSingleton } from "@/hooks/use-wallet-singleton";
+import { useWalletSimple } from "@/hooks/use-wallet-simple";
 import { useState } from "react";
 
-export const WalletConnectSimple = () => {
+export const WalletConnectTech = () => {
   const {
     walletInfo,
     isConnecting,
@@ -23,9 +25,7 @@ export const WalletConnectSimple = () => {
     connect,
     disconnect,
     clearError
-  } = useWalletSingleton();
-
-  // El estado kitLoaded ya viene del hook useWalletSingleton
+  } = useWalletSimple();
 
   const [copied, setCopied] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
@@ -78,11 +78,11 @@ export const WalletConnectSimple = () => {
   const getNetworkColor = (network: string) => {
     switch (network) {
       case 'testnet':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'border-yellow-500/50 text-yellow-400 bg-yellow-500/10';
       case 'public':
-        return 'bg-green-100 text-green-800';
+        return 'border-green-500/50 text-green-400 bg-green-500/10';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'border-gray-500/50 text-gray-400 bg-gray-500/10';
     }
   };
 
@@ -99,15 +99,15 @@ export const WalletConnectSimple = () => {
 
   if (error) {
     return (
-      <Alert variant="destructive" className="mb-4">
+      <Alert variant="destructive" className="mb-4 bg-red-900/20 border-red-500/50">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
+        <AlertDescription className="text-red-300">
           {error}
           <Button
             variant="outline"
             size="sm"
             onClick={clearError}
-            className="ml-2"
+            className="ml-2 border-red-500/50 text-red-300 hover:bg-red-500/10"
           >
             Dismiss
           </Button>
@@ -122,14 +122,17 @@ export const WalletConnectSimple = () => {
         <div className="flex items-center space-x-2">
           <div className="text-right">
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                <Shield className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-sm font-medium text-white">
                 {formatAddress(walletInfo.publicKey)}
               </span>
               <Badge variant="outline" className={getNetworkColor(walletInfo.network)}>
                 {getNetworkLabel(walletInfo.network)}
               </Badge>
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-gray-400 ml-10">
               {walletInfo.walletId}
             </div>
           </div>
@@ -141,9 +144,10 @@ export const WalletConnectSimple = () => {
             size="sm"
             onClick={handleCopyAddress}
             disabled={copied}
+            className="border-slate-600 text-gray-300 hover:bg-slate-700"
           >
             {copied ? (
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-green-400" />
             ) : (
               <Copy className="h-4 w-4" />
             )}
@@ -154,6 +158,7 @@ export const WalletConnectSimple = () => {
             size="sm"
             onClick={disconnect}
             disabled={isDisconnecting}
+            className="border-slate-600 text-gray-300 hover:bg-slate-700"
           >
             {isDisconnecting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -169,7 +174,7 @@ export const WalletConnectSimple = () => {
 
   if (!kitLoaded) {
     return (
-      <Button disabled className="flex items-center space-x-2">
+      <Button disabled className="flex items-center space-x-2 bg-slate-800/50 border-slate-700">
         <Loader2 className="h-4 w-4 animate-spin" />
         <span>Loading Wallet...</span>
       </Button>
@@ -180,7 +185,7 @@ export const WalletConnectSimple = () => {
     <Button
       onClick={handleConnect}
       disabled={isConnecting || isProcessing || !kitLoaded}
-      className="flex items-center space-x-2"
+      className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 border-0"
     >
       {(isConnecting || isProcessing) ? (
         <Loader2 className="h-4 w-4 animate-spin" />

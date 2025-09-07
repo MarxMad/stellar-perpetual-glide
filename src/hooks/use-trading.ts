@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { perpetualContractClient } from '@/lib/perpetual-contract-client';
+import { simplePerpetualClient } from '@/lib/simple-perpetual-client';
 import { useStellarServices } from './use-stellar-services';
 
 export interface TradingPosition {
@@ -43,7 +43,7 @@ export const useTrading = () => {
     try {
       console.log('🚀 Abriendo posición long:', formData);
       
-      const positionId = await perpetualContractClient.openLongPosition(
+      const positionId = await simplePerpetualClient.openLongPosition(
         userAddress,
         formData.asset,
         formData.amount,
@@ -53,7 +53,7 @@ export const useTrading = () => {
       console.log('✅ Posición long abierta:', positionId);
 
       // Obtener detalles de la posición
-      const positionDetails = await perpetualContractClient.getPosition(positionId);
+      const positionDetails = await simplePerpetualClient.getPosition(positionId);
       
       const newPosition: TradingPosition = {
         id: positionId,
@@ -92,7 +92,7 @@ export const useTrading = () => {
     try {
       console.log('🚀 Abriendo posición short:', formData);
       
-      const positionId = await perpetualContractClient.openShortPosition(
+      const positionId = await simplePerpetualClient.openShortPosition(
         userAddress,
         formData.asset,
         formData.amount,
@@ -102,7 +102,7 @@ export const useTrading = () => {
       console.log('✅ Posición short abierta:', positionId);
 
       // Obtener detalles de la posición
-      const positionDetails = await perpetualContractClient.getPosition(positionId);
+      const positionDetails = await simplePerpetualClient.getPosition(positionId);
       
       const newPosition: TradingPosition = {
         id: positionId,
@@ -135,7 +135,7 @@ export const useTrading = () => {
     try {
       console.log('🚀 Cerrando posición:', positionId);
       
-      const success = await perpetualContractClient.closePosition(positionId);
+      const success = await simplePerpetualClient.closePosition(positionId);
       
       if (success) {
         console.log('✅ Posición cerrada:', positionId);
@@ -161,7 +161,7 @@ export const useTrading = () => {
       const updatedPositions = await Promise.all(
         positions.map(async (position) => {
           try {
-            const pnl = await perpetualContractClient.calculatePnL(
+            const pnl = await simplePerpetualClient.calculatePnL(
               position.id,
               position.currentPrice
             );

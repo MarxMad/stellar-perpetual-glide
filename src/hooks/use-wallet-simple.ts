@@ -25,25 +25,49 @@ const loadStellarWalletsKit = async () => {
   }
 };
 
+// Variable global para evitar múltiples instancias
+let globalKit: any = null;
+let globalKitLoaded = false;
+let globalLoading = false;
+
 export const useWalletSimple = () => {
   const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [kitLoaded, setKitLoaded] = useState(false);
-  const [kit, setKit] = useState<any>(null);
+  const [kitLoaded, setKitLoaded] = useState(globalKitLoaded);
+  const [kit, setKit] = useState<any>(globalKit);
 
-  // Cargar el kit al montar el componente
+  // Cargar el kit al montar el componente (solo una vez)
   useEffect(() => {
+    let isMounted = true;
+    
     const loadKit = async () => {
+      // Prevenir múltiples cargas
+      if (globalKitLoaded || globalLoading) {
+        if (globalKitLoaded && isMounted) {
+          setKit(globalKit);
+          setKitLoaded(true);
+          await checkConnection(globalKit);
+        }
+        return;
+      }
+      
+      globalLoading = true;
       const loaded = await loadStellarWalletsKit();
-      if (loaded) {
+      
+      if (loaded && isMounted) {
         try {
           const kitInstance = new StellarWalletsKit({
             modules: allowAllModules(),
             network: "Test SDF Network ; September 2015",
             selectedWalletId: FREIGHTER_ID,
           });
+          
+          globalKit = kitInstance;
+          globalKitLoaded = true;
+          globalLoading = false;
+          
           setKit(kitInstance);
           setKitLoaded(true);
           
@@ -51,15 +75,23 @@ export const useWalletSimple = () => {
           await checkConnection(kitInstance);
         } catch (err) {
           console.error('Error initializing StellarWalletsKit:', err);
-          setError('Error initializing wallet kit');
+          globalLoading = false;
+          if (isMounted) {
+            setError('Error initializing wallet kit');
+          }
         }
-      } else {
+      } else if (isMounted) {
+        globalLoading = false;
         setError('Error loading wallet library');
       }
     };
 
     loadKit();
-  }, []);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Dependencias vacías para que solo se ejecute una vez
 
   // Verificar conexión existente
   const checkConnection = async (kitInstance: any) => {
@@ -83,18 +115,37 @@ export const useWalletSimple = () => {
 
   // Conectar wallet
   const connect = async () => {
-    if (!kitLoaded || !kit) {
+    // Prevenir múltiples llamadas simultáneas
+    if (isConnecting || !kitLoaded || !kit) {
+      if (isConnecting) {
+        console.log('🔄 Wallet connection already in progress, skipping...');
+        return;
+      }
+      if (!kitLoaded) {
+        console.log('🔄 Wallet kit not loaded yet, skipping...');
+        return;
+      }
       setError('Wallet kit not loaded');
+      return;
+    }
+
+    // Verificar si ya está conectado
+    if (walletInfo) {
+      console.log('🔄 Wallet already connected, skipping...');
       return;
     }
 
     try {
       setIsConnecting(true);
       setError(null);
+      
+      console.log('🔗 Opening wallet modal...');
 
       await kit.openModal({
         onWalletSelected: async (option: any) => {
           try {
+            console.log('✅ Wallet selected:', option.id);
+            
             // Guardar la wallet seleccionada
             localStorage.setItem('selectedWalletId', option.id);
             kit.setWallet(option.id);
@@ -109,8 +160,9 @@ export const useWalletSimple = () => {
             };
             
             setWalletInfo(walletInfo);
+            console.log('✅ Wallet connected successfully:', walletInfo);
           } catch (e) {
-            console.error('Error setting wallet:', e);
+            console.error('❌ Error setting wallet:', e);
             setError('Error connecting to wallet');
           }
         },
@@ -118,7 +170,7 @@ export const useWalletSimple = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error opening wallet modal';
       setError(errorMessage);
-      console.error('Error connecting wallet:', err);
+      console.error('❌ Error connecting wallet:', err);
     } finally {
       setIsConnecting(false);
     }
@@ -159,6 +211,7 @@ export const useWalletSimple = () => {
     isDisconnecting,
     error,
     isConnected: !!walletInfo,
+    kitLoaded,
     connect,
     disconnect,
     clearError,

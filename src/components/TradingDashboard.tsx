@@ -12,8 +12,10 @@ import { PositionCard } from "./PositionCard";
 import { ReflectorOracle } from "./ReflectorOracle";
 import { KaleRewards } from "./KaleRewards";
 import { FundingRates } from "./FundingRates";
-import { WalletConnectSimple } from "./WalletConnectSimple";
+import { WalletConnectTech } from "./WalletConnectTech";
 import { ReflectorTest } from "./ReflectorTest";
+import { ReflectorSubscriptions } from "./ReflectorSubscriptions";
+import { WebhookConfig } from "./WebhookConfig";
 import { useStellarServices } from "@/hooks/use-stellar-services";
 
 export const TradingDashboard = () => {
@@ -38,33 +40,39 @@ export const TradingDashboard = () => {
   }, [prices]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+      <div className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Stellar Perpetuals
-            </h1>
-            <Badge variant="secondary" className="hidden sm:flex">
-              Beta
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                <BarChart3 className="h-4 w-4 text-white" />
+              </div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Stellar Perpetuals
+              </h1>
+            </div>
+            <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10">
+              <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
+              Live
             </Badge>
           </div>
           <div className="flex items-center space-x-2">
-            <WalletConnectSimple />
+            <WalletConnectTech />
           </div>
         </div>
       </div>
 
       {/* Price Header */}
-      <div className="border-b border-border bg-card/30 backdrop-blur-sm">
+      <div className="border-b border-slate-700/50 bg-slate-800/30 backdrop-blur-sm">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-4">
             <div>
-              <h2 className="text-lg font-semibold">{selectedPair}</h2>
+              <h2 className="text-lg font-semibold text-white">{selectedPair}</h2>
               <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold">${currentPrice.toFixed(4)}</span>
-                <div className={`flex items-center space-x-1 ${priceChange >= 0 ? 'text-success' : 'text-danger'}`}>
+                <span className="text-2xl font-bold text-white">${currentPrice.toFixed(4)}</span>
+                <div className={`flex items-center space-x-1 ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {priceChange >= 0 ? (
                     <TrendingUp className="w-4 h-4" />
                   ) : (
@@ -77,18 +85,22 @@ export const TradingDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="hidden sm:flex items-center space-x-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">24h High:</span>
-              <span className="ml-1 font-medium">$0.1289</span>
+          <div className="hidden sm:flex items-center space-x-6 text-sm">
+            <div className="text-center">
+              <span className="text-gray-400 block">24h High</span>
+              <span className="text-white font-medium">$0.1289</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">24h Low:</span>
-              <span className="ml-1 font-medium">$0.1198</span>
+            <div className="text-center">
+              <span className="text-gray-400 block">24h Low</span>
+              <span className="text-white font-medium">$0.1198</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">Volume:</span>
-              <span className="ml-1 font-medium">$2.4M</span>
+            <div className="text-center">
+              <span className="text-gray-400 block">Volume</span>
+              <span className="text-white font-medium">$2.4M</span>
+            </div>
+            <div className="text-center">
+              <span className="text-gray-400 block">Funding</span>
+              <span className="text-yellow-400 font-medium">0.01%</span>
             </div>
           </div>
         </div>
@@ -96,24 +108,32 @@ export const TradingDashboard = () => {
 
       {/* Main Content with Tabs */}
       <Tabs defaultValue="trading" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 p-4">
-          <TabsTrigger value="trading" className="flex items-center space-x-2">
+        <TabsList className="grid w-full grid-cols-7 p-4 bg-slate-800/50 border-slate-700">
+          <TabsTrigger value="trading" className="flex items-center space-x-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             <span>Trading</span>
           </TabsTrigger>
-          <TabsTrigger value="oracle" className="flex items-center space-x-2">
+          <TabsTrigger value="oracle" className="flex items-center space-x-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
             <Activity className="w-4 h-4" />
             <span>Oracle</span>
           </TabsTrigger>
-          <TabsTrigger value="funding" className="flex items-center space-x-2">
+          <TabsTrigger value="subscriptions" className="flex items-center space-x-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
+            <TrendingUp className="w-4 h-4" />
+            <span>Subscriptions</span>
+          </TabsTrigger>
+          <TabsTrigger value="webhook" className="flex items-center space-x-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
+            <DollarSign className="w-4 h-4" />
+            <span>Webhook</span>
+          </TabsTrigger>
+          <TabsTrigger value="funding" className="flex items-center space-x-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
             <Calculator className="w-4 h-4" />
             <span>Funding</span>
           </TabsTrigger>
-          <TabsTrigger value="rewards" className="flex items-center space-x-2">
+          <TabsTrigger value="rewards" className="flex items-center space-x-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
             <Coins className="w-4 h-4" />
             <span>Rewards</span>
           </TabsTrigger>
-          <TabsTrigger value="test" className="flex items-center space-x-2">
+          <TabsTrigger value="test" className="flex items-center space-x-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
             <Activity className="w-4 h-4" />
             <span>Test</span>
           </TabsTrigger>
@@ -178,6 +198,16 @@ export const TradingDashboard = () => {
         {/* Tab del Oracle Reflector */}
         <TabsContent value="oracle" className="p-4">
           <ReflectorOracle />
+        </TabsContent>
+
+        {/* Tab de Suscripciones de Reflector */}
+        <TabsContent value="subscriptions" className="p-4">
+          <ReflectorSubscriptions />
+        </TabsContent>
+
+        {/* Tab de Configuración de Webhook */}
+        <TabsContent value="webhook" className="p-4">
+          <WebhookConfig />
         </TabsContent>
 
         {/* Tab de Funding Rates */}

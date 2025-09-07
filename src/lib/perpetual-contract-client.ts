@@ -1,6 +1,16 @@
 import { Contract, SorobanRpc, TransactionBuilder, Operation, Networks, Keypair } from '@stellar/stellar-sdk';
 import { PERPETUAL_CONTRACT_CONFIG } from './stellar';
 
+// Debug: verificar que las importaciones estén disponibles
+console.log('🔍 Debug imports:', {
+  Contract: typeof Contract,
+  SorobanRpc: typeof SorobanRpc,
+  TransactionBuilder: typeof TransactionBuilder,
+  Operation: typeof Operation,
+  Networks: typeof Networks,
+  Keypair: typeof Keypair
+});
+
 // Cliente para interactuar con nuestro contrato de Perpetual Futures
 export class PerpetualContractClient {
   private contract: Contract;
@@ -13,6 +23,11 @@ export class PerpetualContractClient {
         contractId: PERPETUAL_CONTRACT_CONFIG.contractId
       });
       
+      // Verificar que SorobanRpc esté disponible
+      if (!SorobanRpc || !SorobanRpc.Server) {
+        throw new Error('SorobanRpc.Server not available');
+      }
+      
       // Usar la API correcta del Stellar SDK
       this.rpc = new SorobanRpc.Server(PERPETUAL_CONTRACT_CONFIG.rpcUrl, {
         allowHttp: true,
@@ -21,8 +36,10 @@ export class PerpetualContractClient {
       
       console.log('✅ PerpetualContractClient initialized successfully');
       console.log('🔍 RPC Server instance:', this.rpc);
+      console.log('🔍 RPC Server type:', typeof this.rpc);
     } catch (error) {
       console.error('❌ Error initializing PerpetualContractClient:', error);
+      console.error('❌ Error details:', error);
       // Fallback: crear instancias básicas sin RPC
       this.contract = new Contract(PERPETUAL_CONTRACT_CONFIG.contractId);
       this.rpc = null;

@@ -1,12 +1,23 @@
-import { Networks, Address, xdr, Contract, SorobanRpc } from '@stellar/stellar-sdk';
+import { Networks, Address, xdr, Contract, StrKey, Soroban } from '@stellar/stellar-sdk';
 import { REFLECTOR_CONFIG } from './stellar';
+
+// Tipos basados en el contrato de Reflector
+export interface Asset {
+  Stellar?: string; // Address como string
+  Other?: string; // Symbol como string
+}
+
+export interface PriceData {
+  price: string; // i128 como string
+  timestamp: string; // u64 como string
+}
 
 // Cliente para interactuar con el contrato de Reflector
 export class ReflectorClient {
   private contractId: string;
   private rpcUrl: string;
   private contract: Contract | null = null;
-  private rpc: SorobanRpc.Server | null = null;
+  private rpc: Soroban.Server | null = null;
 
   constructor() {
     this.contractId = REFLECTOR_CONFIG.contractId;
@@ -18,7 +29,7 @@ export class ReflectorClient {
     if (this.contract && this.rpc) return;
 
     try {
-      this.rpc = new SorobanRpc.Server(this.rpcUrl);
+      this.rpc = new Soroban.Server(this.rpcUrl);
       this.contract = new Contract(this.contractId);
     } catch (error) {
       console.error('Error initializing Reflector contract:', error);
@@ -65,32 +76,65 @@ export class ReflectorClient {
       console.log(`🔗 ReflectorClient: Contrato inicializado correctamente`);
 
       // Crear el objeto Asset para el contrato según el tipo
-      const assetObj = assetInfo.type === 'Stellar' 
-        ? { Stellar: assetInfo.value }
-        : { Other: assetInfo.value };
-      console.log(`📦 ReflectorClient: Objeto Asset creado:`, assetObj);
+      let assetScVal: xdr.ScVal;
+      if (assetInfo.type === 'Stellar') {
+        assetScVal = xdr.ScVal.scvMap([
+          new xdr.ScMapEntry({
+            key: xdr.ScVal.scvSymbol('Stellar'),
+            val: xdr.ScVal.scvAddress(xdr.ScAddress.contract(StrKey.decodeContract(assetInfo.value).toString()))
+          })
+        ]);
+      } else {
+        assetScVal = xdr.ScVal.scvMap([
+          new xdr.ScMapEntry({
+            key: xdr.ScVal.scvSymbol('Other'),
+            val: xdr.ScVal.scvSymbol(assetInfo.value)
+          })
+        ]);
+      }
+      console.log(`📦 ReflectorClient: Asset ScVal creado para ${asset}`);
       
       // Llamar a la función lastprice del contrato
       console.log(`📞 ReflectorClient: Llamando a lastprice del contrato...`);
-      const result = await this.contract.call('lastprice', assetObj);
+      const result = await this.rpc.simulateTransaction(
+        this.contract.call('lastprice', assetScVal)
+      );
       console.log(`📊 ReflectorClient: Resultado del contrato:`, result);
       
-      if (!result) {
+      if (!result || !result.result || result.result.switch().name === 'void') {
         throw new Error(`No price data available for ${asset}`);
       }
 
+      // Procesar el resultado del contrato
+      const resultObj = result.result;
+      if (!resultObj || resultObj.switch().name !== 'vec') {
+        throw new Error(`Invalid price data format for ${asset}`);
+      }
+
+      const priceData = resultObj.vec();
+      if (priceData.length < 2) {
+        throw new Error(`Incomplete price data for ${asset}`);
+      }
+
       // Obtener decimales del contrato
-      const decimals = await this.contract.call('decimals');
+      const decimalsResult = await this.rpc.simulateTransaction(
+        this.contract.call('decimals')
+      );
+      const decimals = decimalsResult.result?.obj()?.u32() || 14;
       console.log(`🔢 ReflectorClient: Decimales del contrato:`, decimals);
       
-      const finalPrice = Number(result.price) / Math.pow(10, Number(decimals));
-      const finalTimestamp = Number(result.timestamp) * 1000;
+      // Extraer precio y timestamp del resultado
+      const rawPrice = priceData[0].i128();
+      const rawTimestamp = priceData[1].u64();
+      
+      const finalPrice = Number(rawPrice) / Math.pow(10, decimals);
+      const finalTimestamp = Number(rawTimestamp) * 1000; // Convertir a milisegundos
       
       console.log(`✅ ReflectorClient: Precio final para ${asset}:`, {
         price: finalPrice,
         timestamp: finalTimestamp,
         decimals: Number(decimals),
-        rawPrice: result.price
+        rawPrice: rawPrice.toString()
       });
       
       return {
@@ -108,7 +152,7 @@ export class ReflectorClient {
       return {
         price: mockPrice,
         timestamp: Date.now(),
-        decimals: 7, // Mock usa 7 decimales
+        decimals: 14, // Mock usa 7 decimales
       };
     }
   }
@@ -200,7 +244,7 @@ export class ReflectorClient {
             prices[asset] = {
               price: mockPrice,
               timestamp: Date.now(),
-              decimals: 7,
+              decimals: 14,
             };
           }
         })
@@ -217,21 +261,42 @@ export class ReflectorClient {
   // Obtener decimales del oráculo
   async getDecimals(): Promise<number> {
     try {
-      // Por ahora, usamos el valor por defecto
-      // TODO: Implementar llamada real cuando Soroban esté disponible
-      return 7; // Default decimals para Stellar
+      await this.initializeContract();
+      
+      if (!this.contract || !this.rpc) {
+        throw new Error('Contract not initialized');
+      }
+
+      const result = await this.rpc.simulateTransaction(
+        this.contract.call('decimals')
+      );
+      const decimals = result.result?.obj()?.u32() || 7;
+      
+      console.log(`🔢 ReflectorClient: Decimales obtenidos del contrato:`, decimals);
+      return decimals;
     } catch (error) {
       console.error('Error getting decimals:', error);
-      return 7; // Default fallback
+      return 14; // Default fallback
     }
   }
 
   // Verificar si el contrato está activo
   async isActive(): Promise<boolean> {
     try {
-      // Por ahora, asumimos que está activo
-      // TODO: Implementar verificación real cuando Soroban esté disponible
-      return true;
+      await this.initializeContract();
+      
+      if (!this.contract || !this.rpc) {
+        return false;
+      }
+
+      // Verificar si podemos obtener información básica del contrato
+      const result = await this.rpc.simulateTransaction(
+        this.contract.call('version')
+      );
+      const version = result.result?.obj()?.u32();
+      
+      console.log(`📋 ReflectorClient: Versión del contrato:`, version);
+      return version !== undefined && version > 0;
     } catch (error) {
       console.error('Error checking contract status:', error);
       return false;
@@ -252,17 +317,19 @@ export class ReflectorClient {
       }
 
       // Llamar al método lastprice del contrato
-      const result = await this.contract.call('lastprice', xdr.ScVal.scvSymbol(asset));
+      const result = await this.rpc.simulateTransaction(
+        this.contract.call('lastprice', xdr.ScVal.scvSymbol(asset))
+      );
       
-      if (result && result.obj() && result.obj().switch().name === 'vec') {
-        const priceData = result.obj().vec();
+      if (result && result.result && result.result.switch().name === 'vec') {
+        const priceData = result.result.vec();
         const price = priceData[0].i128();
         const timestamp = priceData[1].u64();
         
         return {
           price: Number(price) / Math.pow(10, 7), // Convertir de i128 a número
           timestamp: Number(timestamp),
-          decimals: 7,
+          decimals: 14,
         };
       }
       
@@ -286,13 +353,15 @@ export class ReflectorClient {
       }
 
       // Llamar al método twap del contrato
-      const result = await this.contract.call('twap', 
-        xdr.ScVal.scvSymbol(asset),
-        xdr.ScVal.scvU32(records)
+      const result = await this.rpc.simulateTransaction(
+        this.contract.call('twap', 
+          xdr.ScVal.scvSymbol(asset),
+          xdr.ScVal.scvU32(records)
+        )
       );
       
-      if (result && result.obj() && result.obj().switch().name === 'i128') {
-        const twapPrice = result.obj().i128();
+      if (result && result.result && result.result.switch().name === 'i128') {
+        const twapPrice = result.result.i128();
         
         return {
           price: Number(twapPrice) / Math.pow(10, 7),
