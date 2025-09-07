@@ -18,8 +18,6 @@ export const getStellarConfig = (network: 'mainnet' | 'testnet' = 'testnet') => 
 // Configuración por defecto (testnet)
 export const STELLAR_CONFIG = getStellarConfig('testnet');
 
-// No necesitamos crear un cliente aquí, lo crearemos cuando sea necesario
-
 // Función para obtener la configuración de Reflector basada en la red
 export const getReflectorConfig = (network: 'mainnet' | 'testnet' = 'testnet') => {
   const isTestnet = network === 'testnet';
@@ -37,6 +35,7 @@ export const getReflectorConfig = (network: 'mainnet' | 'testnet' = 'testnet') =
     networkPassphrase: isTestnet 
       ? 'Test SDF Network ; September 2015'
       : 'Public Global Stellar Network ; September 2015',
+  };
 };
 
 // Configuración por defecto de Reflector (testnet)
