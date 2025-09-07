@@ -239,7 +239,7 @@ export const TradingDashboard = () => {
                 <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Trading</span>
                 <span className="xs:hidden">Trade</span>
-              </TabsTrigger>
+          </TabsTrigger>
               
               <TabsTrigger 
                 value="positions" 
@@ -248,7 +248,7 @@ export const TradingDashboard = () => {
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Positions</span>
                 <span className="xs:hidden">Pos</span>
-              </TabsTrigger>
+          </TabsTrigger>
               
               <TabsTrigger 
                 value="portfolio" 
@@ -257,70 +257,94 @@ export const TradingDashboard = () => {
                 <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Portfolio</span>
                 <span className="xs:hidden">Port</span>
-              </TabsTrigger>
-            </TabsList>
+          </TabsTrigger>
+        </TabsList>
           </div>
         </div>
 
-        {/* Tab de Trading */}
+        {/* Tab de Trading - Layout como en la imagen de referencia */}
         <TabsContent value="trading" className="space-y-0 pb-20 xl:pb-8">
-          <div className="flex flex-col xl:flex-row h-[calc(100vh-300px)] xl:h-[calc(100vh-250px)] gap-4 p-4">
-            {/* Left Side - Chart Only */}
-            <div className="flex-1 xl:w-2/3">
-              <div className="h-full">
+          {/* Gráfico Principal - Full Width */}
+          <div className="p-4 pb-0">
+            <Card className="bg-slate-900/90 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden shadow-2xl shadow-cyan-500/10 h-[400px] xl:h-[500px]">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-teal-500/10"></div>
+              <CardHeader className="relative z-10 p-4 border-b border-cyan-500/20">
+                <CardTitle className="flex items-center space-x-2 text-cyan-300 text-lg font-semibold">
+                  <BarChart3 className="w-5 h-5 text-cyan-400" />
+                  <span>XLM/USDC Price Chart</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10 p-4 h-[calc(100%-80px)]">
                 <RealTimeChart coinId="stellar" />
-              </div>
-            </div>
-
-            {/* Right Side - OrderBook, Trading Form, Positions */}
-            <div className="w-full xl:w-1/3 flex flex-col space-y-4">
-              {/* OrderBook */}
-              <div className="h-[30vh] xl:h-[25vh]">
-                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                  <CardHeader className="relative z-10 p-3">
-                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-sm">
-                      <BarChart3 className="w-4 h-4 text-cyan-400" />
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Tres Paneles Principales */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 p-4 h-[calc(100vh-700px)] xl:h-[calc(100vh-800px)]">
+            
+            {/* Columna 1: Order Book - Más grande y funcional */}
+            <div className="xl:col-span-1">
+              <Card className="h-full bg-slate-900/90 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden shadow-2xl shadow-cyan-500/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-teal-500/10"></div>
+                <CardHeader className="relative z-10 p-4 border-b border-cyan-500/20">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-lg font-semibold">
+                      <BarChart3 className="w-5 h-5 text-cyan-400" />
                       <span>Order Book</span>
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative z-10 p-3 h-[calc(100%-60px)] overflow-hidden">
-                    <OrderBook />
-                  </CardContent>
-                </Card>
-              </div>
+                    <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10 px-3 py-1">
+                      XLM/USDC
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10 p-4 h-[calc(100%-80px)] overflow-auto">
+                  <OrderBook />
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Trade Form */}
-              <div className="flex-1 min-h-[200px]">
-                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                  <CardHeader className="relative z-10 p-3">
-                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-sm">
-                      <Activity className="w-4 h-4 text-cyan-400" />
+            {/* Columna 2: Trade Form - Más grande y funcional */}
+            <div className="xl:col-span-1">
+              <Card className="h-full bg-slate-900/90 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden shadow-2xl shadow-cyan-500/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-teal-500/10"></div>
+                <CardHeader className="relative z-10 p-4 border-b border-cyan-500/20">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-lg font-semibold">
+                      <Activity className="w-5 h-5 text-cyan-400" />
                       <span>Trade</span>
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative z-10 p-3 h-[calc(100%-60px)] overflow-auto">
-                    <TradeForm />
-                  </CardContent>
-                </Card>
-              </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-400">Balance</div>
+                      <div className="text-lg font-bold text-green-400">$1,250.75</div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10 p-4 h-[calc(100%-80px)] overflow-auto">
+                  <TradeForm />
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Position Card */}
-              <div className="h-[20vh] xl:h-[15vh]">
-                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                  <CardHeader className="relative z-10 p-3">
-                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-sm">
-                      <Target className="w-4 h-4 text-cyan-400" />
+            {/* Columna 3: Positions - Más grande y funcional */}
+            <div className="xl:col-span-1">
+              <Card className="h-full bg-slate-900/90 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden shadow-2xl shadow-cyan-500/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-teal-500/10"></div>
+                <CardHeader className="relative z-10 p-4 border-b border-cyan-500/20">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-lg font-semibold">
+                      <Target className="w-5 h-5 text-cyan-400" />
                       <span>Positions</span>
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative z-10 p-3 h-[calc(100%-60px)] overflow-hidden">
-                    <PositionCard />
-                  </CardContent>
-                </Card>
-              </div>
+                    <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10 px-3 py-1">
+                      +$0.00
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10 p-4 h-[calc(100%-80px)] overflow-auto">
+                  <PositionCard />
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsContent>
@@ -339,7 +363,7 @@ export const TradingDashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <PositionCard />
+              <PositionCard />
                 </CardContent>
               </Card>
 
