@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCoinGecko } from "../hooks/use-coingecko";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, BarChart3, DollarSign, Activity, Coins, Calculator, Wallet, Target, PieChart, Settings, ChevronDown, Home } from "lucide-react";
 import { PriceChart } from "./PriceChart";
 import { TradingViewChart } from "./TradingViewChart";
+import { RealTimeChart } from "./RealTimeChart";
 import { OrderBook } from "./OrderBook";
 import { TradeForm } from "./TradeForm";
 import { PositionCard } from "./PositionCard";
@@ -32,17 +34,27 @@ export const TradingDashboard = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
 
-  // Obtener precio actual de XLM
+  // Hook para obtener precios reales de CoinGecko
+  const { price: xlmPrice, loading: priceLoading } = useCoinGecko('stellar');
+
+  // Obtener precio actual de XLM desde CoinGecko
   useEffect(() => {
-    const xlmPrice = prices.find(p => p.asset === 'XLM');
     if (xlmPrice) {
-      setCurrentPrice(xlmPrice.price);
-      setPriceChange(xlmPrice.change24h);
+      setCurrentPrice(xlmPrice.current_price || 0.1234);
+      setPriceChange(xlmPrice.price_change_percentage_24h || 0);
       setIsConnected(true);
-    } else {
-      setIsConnected(false);
+    } else if (!priceLoading) {
+      // Fallback a precios simulados si CoinGecko falla
+      const fallbackPrice = prices.find(p => p.asset === 'XLM');
+      if (fallbackPrice) {
+        setCurrentPrice(fallbackPrice.price);
+        setPriceChange(0); // Valor por defecto si no hay cambio disponible
+        setIsConnected(true);
+      } else {
+        setIsConnected(false);
+      }
     }
-  }, [prices]);
+  }, [xlmPrice, priceLoading, prices]);
 
   // Cargar precios al inicializar
   useEffect(() => {
@@ -175,7 +187,7 @@ export const TradingDashboard = () => {
             <div>
               <h2 className="text-lg font-semibold text-cyan-300">{selectedPair}</h2>
               <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">${currentPrice?.toFixed(4) || '0.0000'}</span>
+                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">${typeof currentPrice === 'number' ? currentPrice.toFixed(4) : '0.0000'}</span>
                 <div className={`flex items-center space-x-1 ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {priceChange >= 0 ? (
                     <TrendingUp className="w-4 h-4" />
@@ -183,7 +195,7 @@ export const TradingDashboard = () => {
                     <TrendingDown className="w-4 h-4" />
                   )}
                   <span className="text-sm font-medium">
-                    {priceChange >= 0 ? '+' : ''}{priceChange?.toFixed(2) || '0.00'}%
+                    {priceChange >= 0 ? '+' : ''}{typeof priceChange === 'number' ? priceChange.toFixed(2) : '0.00'}%
                   </span>
                 </div>
               </div>
@@ -216,114 +228,98 @@ export const TradingDashboard = () => {
         
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Desktop Tabs */}
-        <div className="hidden xl:block">
-          <TabsList className="grid w-full grid-cols-3 p-2 bg-slate-900/90 border border-cyan-500/30 backdrop-blur-md relative overflow-hidden rounded-xl mx-4 my-4 shadow-2xl shadow-cyan-500/10 neon-glow data-stream">
-            {/* Efectos de fondo futuristas */}
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-transparent to-teal-500/10 animate-pulse"></div>
-            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-teal-400/50 to-transparent"></div>
-            
-            <TabsTrigger 
-              value="trading" 
-              className="flex items-center justify-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-400/60 data-[state=active]:scale-105 data-[state=active]:border data-[state=active]:border-cyan-300/50 data-[state=active]:cyber-pulse tech-hover hover:bg-cyan-500/20 hover:text-cyan-300 hover:shadow-lg hover:shadow-cyan-400/30 relative z-10 rounded-lg font-semibold py-3 text-gray-300"
-            >
-              <BarChart3 className="w-5 h-5" />
-            <span>Trading</span>
-          </TabsTrigger>
-            <TabsTrigger 
-              value="positions" 
-              className="flex items-center justify-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-400/60 data-[state=active]:scale-105 data-[state=active]:border data-[state=active]:border-cyan-300/50 data-[state=active]:cyber-pulse tech-hover hover:bg-cyan-500/20 hover:text-cyan-300 hover:shadow-lg hover:shadow-cyan-400/30 relative z-10 rounded-lg font-semibold py-3 text-gray-300"
-            >
-              <TrendingUp className="w-5 h-5" />
-              <span>Positions</span>
-          </TabsTrigger>
-            <TabsTrigger 
-              value="portfolio" 
-              className="flex items-center justify-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-400/60 data-[state=active]:scale-105 data-[state=active]:border data-[state=active]:border-cyan-300/50 data-[state=active]:cyber-pulse tech-hover hover:bg-cyan-500/20 hover:text-cyan-300 hover:shadow-lg hover:shadow-cyan-400/30 relative z-10 rounded-lg font-semibold py-3 text-gray-300"
-            >
-              <Wallet className="w-5 h-5" />
-              <span>Portfolio</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Tabs - Responsive para todas las pantallas */}
+        <div className="w-full px-4 py-3">
+          <div className="max-w-6xl mx-auto">
+            <TabsList className="grid w-full grid-cols-3 p-1 bg-slate-800/90 border border-cyan-500/30 rounded-lg">
+              <TabsTrigger 
+                value="trading" 
+                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
+              >
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Trading</span>
+                <span className="xs:hidden">Trade</span>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="positions" 
+                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
+              >
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Positions</span>
+                <span className="xs:hidden">Pos</span>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="portfolio" 
+                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
+              >
+                <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Portfolio</span>
+                <span className="xs:hidden">Port</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </div>
 
         {/* Tab de Trading */}
         <TabsContent value="trading" className="space-y-0 pb-20 xl:pb-8">
-          <div className="flex flex-col xl:flex-row h-[calc(100vh-300px)] xl:h-[calc(100vh-250px)] gap-4">
-            {/* Left Side - Chart & OrderBook */}
-            <div className="flex-1 flex flex-col xl:w-3/4">
-              {/* Chart */}
-              <div className="flex-1 p-4 h-[50vh] xl:h-[65vh]">
-                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow scan-line">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5 energy-flow"></div>
-                  <CardHeader className="relative z-10">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center space-x-2 text-cyan-300 hologram-flicker">
-                        <BarChart3 className="w-5 h-5 text-cyan-400" />
-                        <span>Price Chart</span>
-                      </CardTitle>
-                      <div className="flex space-x-1">
-                        {['1m', '5m', '15m', '1h', '4h', '1d'].map((timeframe) => (
-                          <Button
-                            key={timeframe}
-                            variant={timeframe === '15m' ? 'default' : 'ghost'}
-                            size="sm"
-                            className={`h-7 px-2 text-xs transition-all duration-300 ${
-                              timeframe === '15m' 
-                                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-semibold shadow-lg shadow-cyan-400/30' 
-                                : 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 hover:shadow-lg hover:shadow-cyan-400/20'
-                            }`}
-                          >
-                            {timeframe}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
+          <div className="flex flex-col xl:flex-row h-[calc(100vh-300px)] xl:h-[calc(100vh-250px)] gap-4 p-4">
+            {/* Left Side - Chart Only */}
+            <div className="flex-1 xl:w-2/3">
+              <div className="h-full">
+                <RealTimeChart coinId="stellar" />
+              </div>
+            </div>
+
+            {/* Right Side - OrderBook, Trading Form, Positions */}
+            <div className="w-full xl:w-1/3 flex flex-col space-y-4">
+              {/* OrderBook */}
+              <div className="h-[30vh] xl:h-[25vh]">
+                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
+                  <CardHeader className="relative z-10 p-3">
+                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-sm">
+                      <BarChart3 className="w-4 h-4 text-cyan-400" />
+                      <span>Order Book</span>
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0 flex-1 min-h-[300px]">
-                    <TradingViewChart height={400} />
+                  <CardContent className="relative z-10 p-3 h-[calc(100%-60px)] overflow-hidden">
+                    <OrderBook />
                   </CardContent>
                 </Card>
               </div>
 
-              {/* OrderBook - Mobile/Tablet */}
-              <div className="xl:hidden p-4 pt-0 h-[40vh]">
-                <div className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                  <div className="relative z-10 h-full">
-                <OrderBook />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side - Trading Panel */}
-            <div className="w-full lg:w-80 xl:w-1/4 flex flex-col space-y-4 p-4">
-              {/* OrderBook - Desktop */}
-              <div className="hidden xl:block h-[40vh]">
-                <div className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                  <div className="relative z-10 h-full">
-                <OrderBook />
-                  </div>
-                </div>
-              </div>
-
               {/* Trade Form */}
-              <div className="flex-1 bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                <div className="relative z-10 h-full">
-              <TradeForm />
-                </div>
+              <div className="flex-1 min-h-[200px]">
+                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
+                  <CardHeader className="relative z-10 p-3">
+                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-sm">
+                      <Activity className="w-4 h-4 text-cyan-400" />
+                      <span>Trade</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="relative z-10 p-3 h-[calc(100%-60px)] overflow-auto">
+                    <TradeForm />
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Position Card */}
-              <div className="bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                <div className="relative z-10">
-              <PositionCard />
-                </div>
+              <div className="h-[20vh] xl:h-[15vh]">
+                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
+                  <CardHeader className="relative z-10 p-3">
+                    <CardTitle className="flex items-center space-x-2 text-cyan-300 text-sm">
+                      <Target className="w-4 h-4 text-cyan-400" />
+                      <span>Positions</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="relative z-10 p-3 h-[calc(100%-60px)] overflow-hidden">
+                    <PositionCard />
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
