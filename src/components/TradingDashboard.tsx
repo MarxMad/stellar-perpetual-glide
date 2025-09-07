@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, BarChart3, DollarSign, Activity, Coins, Calculator, Wallet, Target, PieChart, Settings, ChevronDown, Home } from "lucide-react";
 import { PriceChart } from "./PriceChart";
+import { TradingViewChart } from "./TradingViewChart";
 import { OrderBook } from "./OrderBook";
 import { TradeForm } from "./TradeForm";
 import { PositionCard } from "./PositionCard";
@@ -249,13 +250,13 @@ export const TradingDashboard = () => {
 
         {/* Tab de Trading */}
         <TabsContent value="trading" className="space-y-0 pb-20 xl:pb-8">
-          <div className="flex flex-col xl:flex-row h-[calc(100vh-300px)] xl:h-[calc(100vh-250px)]">
+          <div className="flex flex-col xl:flex-row h-[calc(100vh-300px)] xl:h-[calc(100vh-250px)] gap-4">
             {/* Left Side - Chart & OrderBook */}
-            <div className="flex-1 flex flex-col xl:w-2/3">
+            <div className="flex-1 flex flex-col xl:w-3/4">
               {/* Chart */}
-              <div className="flex-1 p-4 h-[50vh] xl:h-[60vh]">
-                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
+              <div className="flex-1 p-4 h-[50vh] xl:h-[65vh]">
+                <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow scan-line">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5 energy-flow"></div>
                   <CardHeader className="relative z-10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center space-x-2 text-cyan-300 hologram-flicker">
@@ -281,7 +282,7 @@ export const TradingDashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="p-0 flex-1 min-h-[300px]">
-                    <PriceChart />
+                    <TradingViewChart height={400} />
                   </CardContent>
                 </Card>
               </div>
@@ -298,7 +299,7 @@ export const TradingDashboard = () => {
             </div>
 
             {/* Right Side - Trading Panel */}
-            <div className="w-full lg:w-80 xl:w-96 flex flex-col space-y-4 p-4">
+            <div className="w-full lg:w-80 xl:w-1/4 flex flex-col space-y-4 p-4">
               {/* OrderBook - Desktop */}
               <div className="hidden xl:block h-[40vh]">
                 <div className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
