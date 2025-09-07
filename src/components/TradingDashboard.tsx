@@ -249,11 +249,11 @@ export const TradingDashboard = () => {
 
         {/* Tab de Trading */}
         <TabsContent value="trading" className="space-y-0 pb-20 xl:pb-8">
-          <div className="flex flex-col lg:flex-row min-h-[600px]">
+          <div className="flex flex-col xl:flex-row h-[calc(100vh-300px)] xl:h-[calc(100vh-250px)]">
             {/* Left Side - Chart & OrderBook */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col xl:w-2/3">
               {/* Chart */}
-              <div className="flex-1 p-4 min-h-[400px]">
+              <div className="flex-1 p-4 h-[50vh] xl:h-[60vh]">
                 <Card className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm relative overflow-hidden neon-glow">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
                   <CardHeader className="relative z-10">
@@ -287,10 +287,10 @@ export const TradingDashboard = () => {
               </div>
 
               {/* OrderBook - Mobile/Tablet */}
-              <div className="xl:hidden p-4 pt-0">
-                <div className="bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
+              <div className="xl:hidden p-4 pt-0 h-[40vh]">
+                <div className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                  <div className="relative z-10">
+                  <div className="relative z-10 h-full">
                 <OrderBook />
                   </div>
                 </div>
@@ -300,19 +300,19 @@ export const TradingDashboard = () => {
             {/* Right Side - Trading Panel */}
             <div className="w-full lg:w-80 xl:w-96 flex flex-col space-y-4 p-4">
               {/* OrderBook - Desktop */}
-              <div className="hidden xl:block">
-                <div className="bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
+              <div className="hidden xl:block h-[40vh]">
+                <div className="h-full bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                  <div className="relative z-10">
+                  <div className="relative z-10 h-full">
                 <OrderBook />
                   </div>
                 </div>
               </div>
 
               {/* Trade Form */}
-              <div className="bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
+              <div className="flex-1 bg-slate-900/80 border-cyan-500/20 backdrop-blur-sm rounded-lg relative overflow-hidden neon-glow">
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
-                <div className="relative z-10">
+                <div className="relative z-10 h-full">
               <TradeForm />
                 </div>
               </div>
