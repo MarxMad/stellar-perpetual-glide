@@ -7,15 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, BarChart3, DollarSign, Activity, Coins, Calculator, Wallet, Target, PieChart, Settings, ChevronDown, Home } from "lucide-react";
-import { PriceChart } from "./PriceChart";
-import { TradingViewChart } from "./TradingViewChart";
-import { RealTimeChart } from "./RealTimeChart";
 import { TradingViewWidget } from "./TradingViewWidget";
 import { AssetSelector, AVAILABLE_ASSETS, Asset } from "./AssetSelector";
 import { OrderBook } from "./OrderBook";
 import { TradeForm } from "./TradeForm";
 import { PositionCard } from "./PositionCard";
 import { ReflectorOracle } from "./ReflectorOracle";
+import { ReflectorStatus } from "./ReflectorStatus";
+import { TradingStats } from "./TradingStats";
+import { LiquidationAlert } from "./LiquidationAlert";
 import { KaleRewards } from "./KaleRewards";
 import { FundingRates } from "./FundingRates";
 import { WalletConnectTech } from "./WalletConnectTech";
@@ -242,7 +242,7 @@ export const TradingDashboard = () => {
         {/* Tabs - Responsive para todas las pantallas */}
         <div className="w-full px-4 py-3">
           <div className="max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3 p-1 bg-slate-800/90 border border-cyan-500/30 rounded-lg">
+            <TabsList className="grid w-full grid-cols-4 p-1 bg-slate-800/90 border border-cyan-500/30 rounded-lg">
               <TabsTrigger 
                 value="trading" 
                 className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
@@ -268,6 +268,15 @@ export const TradingDashboard = () => {
                 <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Portfolio</span>
                 <span className="xs:hidden">Port</span>
+          </TabsTrigger>
+
+              <TabsTrigger 
+                value="stats" 
+                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
+              >
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Stats</span>
+                <span className="xs:hidden">Stats</span>
           </TabsTrigger>
         </TabsList>
           </div>
@@ -448,6 +457,20 @@ export const TradingDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </TabsContent>
+
+        {/* Tab de Estadísticas y Reflector */}
+        <TabsContent value="stats" className="space-y-0 pb-20 xl:pb-8">
+          <div className="p-4 space-y-6">
+            {/* Trading Statistics */}
+            <TradingStats />
+            
+            {/* Reflector Status */}
+            <ReflectorStatus />
+            
+            {/* Liquidation Alerts */}
+            <LiquidationAlert liquidations={[]} />
           </div>
         </TabsContent>
 
