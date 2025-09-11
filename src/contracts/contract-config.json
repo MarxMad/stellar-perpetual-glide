@@ -1,0 +1,45 @@
+{
+  "testnet": {
+    "network": "testnet",
+    "rpcUrl": "https://soroban-testnet.stellar.org",
+    "networkPassphrase": "Test SDF Network ; September 2015",
+    "contracts": {
+      "priceOracle": {
+        "id": "CAYMTS6FAAYPCYUSMGRIIHSRBLTWB53EYPMANEV6UZMHE4VIBINF52TD",
+        "name": "Price Oracle Contract",
+        "description": "Obtener precios en tiempo real desde Reflector Oracle"
+      },
+      "perpetualTrading": {
+        "id": "CBCKPEPZZ6H66555PB7ZR3YQNX2GBHR4VFP7NZIV4KZ36345YFZXEZE2",
+        "name": "Perpetual Trading Contract",
+        "description": "Trading de perpetuos con XLM real"
+      }
+    },
+    "wallet": {
+      "publicKey": "GB4UZ6VHOD6ZDCBHJPI3OSFHBXTFTD75YNVLO3YT7PLC3RZANKFROEMZ",
+      "alias": "testnet-wallet"
+    }
+  },
+  "mainnet": {
+    "network": "mainnet",
+    "rpcUrl": "https://soroban-rpc.mainnet.stellar.gateway.fm",
+    "networkPassphrase": "Public Global Stellar Network ; September 2015",
+    "contracts": {
+      "priceOracle": {
+        "id": "PENDIENTE",
+        "name": "Price Oracle Contract",
+        "description": "Obtener precios en tiempo real desde Reflector Oracle"
+      },
+      "perpetualTrading": {
+        "id": "PENDIENTE",
+        "name": "Perpetual Trading Contract",
+        "description": "Trading de perpetuos con XLM real"
+      }
+    },
+    "wallet": {
+      "publicKey": "GCUPLN5Y2N4UNZ76WZLDMVA2MUGWAOWCVPRBU4AJKJFXZLLJCCXI256P",
+      "alias": "mainnet-wallet",
+      "balance": "12.0000000 XLM"
+    }
+  }
+}

@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useStellarServices } from "@/hooks/use-stellar-services";
+import { useReflectorEnhanced } from "@/hooks/use-reflector-enhanced";
 import { useEffect, useState } from "react";
 
 export const OrderBook = () => {
-  const { prices, getPrices } = useStellarServices();
+  const { prices, getPrices } = useReflectorEnhanced(false);
   const [currentPrice, setCurrentPrice] = useState(0.1234);
 
   // Obtener precio actual de XLM

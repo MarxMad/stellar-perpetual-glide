@@ -13,19 +13,39 @@ Una plataforma de trading de futuros perpetuos construida en Stellar usando Soro
 
 ## 📋 Contratos Desplegados
 
-### 🎯 Perpetual Futures Contract (Nuestro Contrato)
-- **Contract ID**: `CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R`
+### 🎯 Perpetual Trading Contract (Nuestro Contrato Principal)
+- **Contract ID**: `CBCKPEPZZ6H66555PB7ZR3YQNX2GBHR4VFP7NZIV4KZ36345YFZXEZE2`
 - **Red**: Stellar Testnet
 - **Estado**: ✅ Activo y funcionando
-- **Explorer**: https://stellar.expert/explorer/testnet/contract/CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R
-- **Funciones**:
-  - `initialize(oracle_address)` - Inicializar con Reflector Oracle
-  - `get_oracle_address()` - Obtener dirección del oráculo
-  - `calculate_funding_rate(spot_price, futures_price)` - Calcular funding rate
-  - `is_price_valid(price)` - Validar precio
+- **Explorer**: https://stellar.expert/explorer/testnet/contract/CBCKPEPZZ6H66555PB7ZR3YQNX2GBHR4VFP7NZIV4KZ36345YFZXEZE2
+- **Funciones principales**:
+  - `initialize(admin_address)` - Inicializar contrato con admin
+  - `deposit_xlm(trader, amount)` - Depositar XLM para margin
+  - `open_position(trader, asset, margin, leverage, is_long)` - Abrir posición long/short
+  - `close_position(trader, position_id)` - Cerrar posición y calcular PnL
+  - `withdraw_xlm(amount)` - Retirar XLM del contrato
+  - `get_trader_balance()` - Obtener balance del trader
+  - `get_current_position()` - Obtener posición actual
+  - `get_config()` - Obtener configuración del contrato
+  - `pause_contract()` / `resume_contract()` - Pausar/reanudar contrato
   - `version()` - Obtener versión del contrato
 
-### 🔮 Reflector Oracle Contract
+### 🔮 Price Oracle Contract (Integración con Reflector)
+- **Contract ID**: `CAYMTS6FAAYPCYUSMGRIIHSRBLTWB53EYPMANEV6UZMHE4VIBINF52TD`
+- **Red**: Stellar Testnet
+- **Estado**: ✅ Activo y funcionando
+- **Explorer**: https://stellar.expert/explorer/testnet/contract/CAYMTS6FAAYPCYUSMGRIIHSRBLTWB53EYPMANEV6UZMHE4VIBINF52TD
+- **Funciones principales**:
+  - `initialize(oracle_address)` - Inicializar con Reflector Oracle
+  - `get_xlm_price()` - Obtener precio de XLM desde Reflector
+  - `get_btc_price()` - Obtener precio de BTC desde Reflector
+  - `get_eth_price()` - Obtener precio de ETH desde Reflector
+  - `get_xlm_twap(records)` - Obtener TWAP de XLM
+  - `is_price_fresh(price)` - Verificar si el precio es fresco
+  - `calculate_funding_rate(spot_price, futures_price)` - Calcular funding rate
+  - `version()` - Obtener versión del contrato
+
+### 🌐 Reflector Oracle Contract (Externo)
 - **Contract ID**: `CAVLP5DH2GJPZMVO7IJY4CVOD5MWEFTJFVPD2YY2FQXOQHRGHK4D6HLP`
 - **Red**: Stellar Testnet
 - **Tipo**: Oracle de precios push-based
@@ -122,24 +142,34 @@ cd src/contracts
 src/
 ├── components/          # Componentes de React
 │   ├── TradingDashboard.tsx
+│   ├── ContractTester.tsx      # 🆕 Tester para contratos desplegados
 │   ├── ReflectorOracle.tsx
 │   ├── FundingRates.tsx
 │   ├── KaleRewards.tsx
 │   └── ui/             # Componentes de shadcn/ui
 ├── contracts/          # Smart contracts en Rust
-│   ├── lib.rs
-│   ├── simple_contract.rs
-│   ├── reflector.rs
-│   └── deploy-testnet.sh
+│   ├── price-oracle-contract/  # 🆕 Contrato de precios
+│   │   ├── src/lib.rs
+│   │   ├── Cargo.toml
+│   │   └── .cargo/config.toml
+│   ├── perpetual-trading-contract/ # 🆕 Contrato de trading
+│   │   ├── src/lib.rs
+│   │   ├── Cargo.toml
+│   │   └── .cargo/config.toml
+│   ├── reflector.rs            # Interfaz de Reflector
+│   ├── deploy-price-oracle.sh  # 🆕 Script de deployment
+│   ├── deploy-trading-contract.sh # 🆕 Script de deployment
+│   └── contract-config.json    # 🆕 Configuración de contratos
 ├── hooks/              # Custom React hooks
 │   ├── use-wallet-simple.ts
-│   └── use-stellar-services.ts
+│   ├── use-reflector-enhanced.ts # 🆕 Hook mejorado para Reflector
+│   ├── use-trading-real.ts     # 🆕 Hook para trading real
+│   └── use-network.ts
 ├── lib/                # Utilidades y clientes
 │   ├── stellar.ts
-│   ├── reflector-client.ts
-│   ├── perpetual-contract-client.ts
-│   ├── reflector.ts
-│   └── kale.ts
+│   ├── perpetual-contract-client.ts # 🆕 Cliente para trading
+│   ├── reflector-enhanced-client.ts # 🆕 Cliente mejorado
+│   └── utils.ts
 └── pages/              # Páginas de la aplicación
     └── Index.tsx
 ```
@@ -147,22 +177,58 @@ src/
 ## 🧪 Testing
 
 ### Probar Integración Completa
-1. Ve a la pestaña **"Test"** en la aplicación
-2. Haz clic en **"Ejecutar Pruebas"**
+1. Ve a la pestaña **"Contract Tester"** en la aplicación
+2. Conecta tu wallet de testnet
 3. Verifica que todos los tests pasen:
-   - ✅ Reflector Oracle funcionando
-   - ✅ Nuestro contrato desplegado
-   - ✅ Cálculo de funding rates
+   - ✅ Price Oracle Contract funcionando
+   - ✅ Perpetual Trading Contract desplegado
+   - ✅ Reflector Oracle integrado
    - ✅ Conexión de wallet
+   - ✅ Depósito/retiro de XLM
+   - ✅ Apertura/cierre de posiciones
 
 ### Probar Funciones del Contrato
+
+#### Price Oracle Contract
 ```bash
-# Obtener información del contrato
-stellar contract invoke --id CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R --source-account alice --network testnet -- get_oracle_address
+# Obtener precio de XLM
+stellar contract invoke --id CAYMTS6FAAYPCYUSMGRIIHSRBLTWB53EYPMANEV6UZMHE4VIBINF52TD --source-account testnet-wallet --network testnet -- get_xlm_price
+
+# Obtener precio de BTC
+stellar contract invoke --id CAYMTS6FAAYPCYUSMGRIIHSRBLTWB53EYPMANEV6UZMHE4VIBINF52TD --source-account testnet-wallet --network testnet -- get_btc_price
 
 # Calcular funding rate
-stellar contract invoke --id CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HIRQG5R --source-account alice --network testnet -- calculate_funding_rate --spot_price 1234000 --futures_price 1235000
+stellar contract invoke --id CAYMTS6FAAYPCYUSMGRIIHSRBLTWB53EYPMANEV6UZMHE4VIBINF52TD --source-account testnet-wallet --network testnet -- calculate_funding_rate --spot_price 1234000 --futures_price 1235000
 ```
+
+#### Perpetual Trading Contract
+```bash
+# Obtener configuración del contrato
+stellar contract invoke --id CBCKPEPZZ6H66555PB7ZR3YQNX2GBHR4VFP7NZIV4KZ36345YFZXEZE2 --source-account testnet-wallet --network testnet -- get_config
+
+# Obtener balance del trader
+stellar contract invoke --id CBCKPEPZZ6H66555PB7ZR3YQNX2GBHR4VFP7NZIV4KZ36345YFZXEZE2 --source-account testnet-wallet --network testnet -- get_trader_balance
+
+# Obtener versión del contrato
+stellar contract invoke --id CBCKPEPZZ6H66555PB7ZR3YQNX2GBHR4VFP7NZIV4KZ36345YFZXEZE2 --source-account testnet-wallet --network testnet -- version
+```
+
+### Usar Contract Tester en Frontend
+```tsx
+import { ContractTester } from '@/components/ContractTester';
+
+// En tu componente
+<ContractTester />
+```
+
+**Funcionalidades disponibles:**
+- 💰 Depositar/retirar XLM
+- 📈 Abrir posiciones long/short
+- 📊 Cerrar posiciones
+- 💳 Ver balance del trader
+- ⚙️ Ver configuración del contrato
+- 📈 Obtener precios de Reflector
+- 📊 Ver posición actual
 
 ## 🔗 Enlaces Útiles
 
@@ -186,12 +252,16 @@ stellar contract invoke --id CAIYZITU25T7GBSKO6WZWOTN72U4EB4FWFRJKP56ASWCE6QN7HI
 
 ## 🚀 Próximos Pasos
 
-1. **Implementar más funciones** en el smart contract
-2. **Agregar validaciones** de seguridad adicionales
-3. **Optimizar gas fees** y rendimiento
-4. **Preparar para Mainnet** deployment
-5. **Implementar más activos** y pares de trading
-6. **Agregar analytics** y métricas
+1. **✅ Completado**: Desplegar contratos en testnet
+2. **✅ Completado**: Crear clientes TypeScript para frontend
+3. **✅ Completado**: Implementar Contract Tester
+4. **🔄 En progreso**: Integrar Contract Tester en dashboard principal
+5. **⏳ Pendiente**: Probar todas las funcionalidades de trading
+6. **⏳ Pendiente**: Desplegar en mainnet
+7. **⏳ Pendiente**: Implementar más activos y pares de trading
+8. **⏳ Pendiente**: Agregar analytics y métricas
+9. **⏳ Pendiente**: Implementar sistema de liquidación
+10. **⏳ Pendiente**: Optimizar gas fees y rendimiento
 
 ---
 

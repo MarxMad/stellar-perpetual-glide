@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export interface WalletInfo {
   publicKey: string;
@@ -7,8 +7,31 @@ export interface WalletInfo {
   balance?: number;
 }
 
-// Hook para wallet real con StellarWalletsKit
-export const useWalletSimple = () => {
+interface WalletContextType {
+  walletInfo: WalletInfo | null;
+  isConnected: boolean;
+  isConnecting: boolean;
+  isDisconnecting: boolean;
+  error: string | null;
+  kitLoaded: boolean;
+  kit: any;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  updateBalance: () => Promise<void>;
+  clearError: () => void;
+}
+
+const WalletContext = createContext<WalletContextType | undefined>(undefined);
+
+export const useWalletContext = () => {
+  const context = useContext(WalletContext);
+  if (!context) {
+    throw new Error('useWalletContext must be used within a WalletProvider');
+  }
+  return context;
+};
+
+export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -157,14 +180,14 @@ export const useWalletSimple = () => {
 
   const isConnected = !!walletInfo;
   
-  console.log('useWalletSimple state:', { 
+  console.log('WalletContext state:', { 
     walletInfo, 
     isConnected, 
     hasPublicKey: !!walletInfo?.publicKey,
     hasBalance: !!walletInfo?.balance 
   });
 
-  return {
+  const value: WalletContextType = {
     walletInfo,
     isConnected,
     isConnecting,
@@ -177,4 +200,10 @@ export const useWalletSimple = () => {
     updateBalance,
     clearError,
   };
+
+  return (
+    <WalletContext.Provider value={value}>
+      {children}
+    </WalletContext.Provider>
+  );
 };

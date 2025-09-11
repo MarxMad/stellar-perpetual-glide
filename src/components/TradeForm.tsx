@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Calculator, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
-import { useTrading, TradingFormData } from "@/hooks/use-trading";
-import { useStellarServices } from "@/hooks/use-stellar-services";
+import { useTradingReal, TradingFormData } from "@/hooks/use-trading-real";
+import { useReflectorEnhanced } from "@/hooks/use-reflector-enhanced";
 
 export const TradeForm = () => {
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
@@ -22,15 +22,14 @@ export const TradeForm = () => {
 
   // Hooks
   const { 
-    openLongPosition, 
-    openShortPosition, 
+    openPosition, 
     isLoading, 
     error, 
     clearError,
     isConnected 
-  } = useTrading();
+  } = useTradingReal();
   
-  const { prices, getPrices, isLoading: pricesLoading } = useStellarServices();
+  const { prices, getPrices, isLoading: pricesLoading } = useReflectorEnhanced(false);
 
   // Activos disponibles con datos reales
   const availableAssets = [
@@ -81,17 +80,12 @@ export const TradeForm = () => {
         side,
         amount: parseFloat(amount),
         leverage: leverage[0],
-        orderType,
-        price: orderType === "limit" ? parseFloat(price) : undefined
+        margin: parseFloat(amount) / leverage[0] // Calcular margin basado en amount y leverage
       };
 
       console.log('🚀 Ejecutando trade:', formData);
 
-      if (side === "long") {
-        await openLongPosition(formData);
-      } else {
-        await openShortPosition(formData);
-      }
+      await openPosition(formData);
 
       // Limpiar formulario después del trade exitoso
       setAmount("");

@@ -2,13 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, X, DollarSign, AlertCircle } from "lucide-react";
-import { useStellarServices } from "@/hooks/use-stellar-services";
-import { useTrading } from "@/hooks/use-trading";
+import { useReflectorEnhanced } from "@/hooks/use-reflector-enhanced";
+import { useTradingReal } from "@/hooks/use-trading-real";
 import { useEffect, useState } from "react";
 
 export const PositionCard = () => {
-  const { prices } = useStellarServices();
-  const { positions, closePosition, isLoading, isConnected } = useTrading();
+  const { prices } = useReflectorEnhanced(false);
+  const { positions, closePosition, isLoading, isConnected } = useTradingReal();
   const [currentPrice, setCurrentPrice] = useState(0.1234);
 
   // Obtener precio actual de XLM

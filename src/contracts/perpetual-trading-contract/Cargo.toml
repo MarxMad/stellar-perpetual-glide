@@ -1,0 +1,20 @@
+[package]
+name = "perpetual-trading-contract"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[dependencies]
+soroban-sdk = "20.1.0"
+
+[profile.release]
+overflow-checks = true
+opt-level = "z"
+debug = 0
+strip = "symbols"
+
+[profile.release.package."*"]
+overflow-checks = true

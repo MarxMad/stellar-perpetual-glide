@@ -4,19 +4,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw, TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { useStellarServices } from '@/hooks/use-stellar-services';
-import { ReflectorPriceData } from '@/lib/reflector';
+import { useReflectorEnhanced } from '@/hooks/use-reflector-enhanced';
+import { ReflectorPriceData } from '@/hooks/use-reflector-enhanced';
 
 export const ReflectorOracle = () => {
   const { 
-    oracleStatus, 
+    contractInfo, 
     prices, 
     getPrices, 
     getRealTimePrice, 
     isLoading, 
     error,
     clearError 
-  } = useStellarServices();
+  } = useReflectorEnhanced(false);
 
   const [realTimePrices, setRealTimePrices] = useState<ReflectorPriceData[]>([]);
   const [isRealTimeActive, setIsRealTimeActive] = useState(false);
@@ -45,7 +45,18 @@ export const ReflectorOracle = () => {
               return [...prev, price];
             }
           });
-        }).then(cleanup => cleanupFunctions.push(cleanup));
+        });
+        const cleanup = getRealTimePrice(asset, (price) => {
+          setRealTimePrices(prev => {
+            const existing = prev.find(p => p.asset === asset);
+            if (existing) {
+              return prev.map(p => p.asset === asset ? price : p);
+            } else {
+              return [...prev, price];
+            }
+          });
+        });
+        cleanupFunctions.push(cleanup);
       });
 
       return () => {
@@ -103,8 +114,8 @@ export const ReflectorOracle = () => {
           <CardTitle className="flex items-center space-x-2">
             <Activity className="w-5 h-5" />
             <span>Estado del Oráculo Reflector</span>
-            <Badge variant={oracleStatus?.isActive ? "default" : "secondary"}>
-              {oracleStatus?.isActive ? "Activo" : "Inactivo"}
+            <Badge variant={contractInfo?.isActive ? "default" : "secondary"}>
+              {contractInfo?.isActive ? "Activo" : "Inactivo"}
             </Badge>
             <Badge variant="outline" className="text-orange-600 border-orange-600">
               TESTNET
@@ -119,18 +130,18 @@ export const ReflectorOracle = () => {
             <div>
               <span className="text-muted-foreground">Estado:</span>
               <span className="ml-2 font-medium">
-                {oracleStatus?.isActive ? "Operativo" : "Mantenimiento"}
+                {contractInfo?.isActive ? "Operativo" : "Mantenimiento"}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">Última Actualización:</span>
               <span className="ml-2 font-medium">
-                {oracleStatus?.lastUpdate ? new Date(oracleStatus.lastUpdate).toLocaleTimeString() : "N/A"}
+                {contractInfo?.network ? "Testnet" : "N/A"}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">Total de Feeds:</span>
-              <span className="ml-2 font-medium">{oracleStatus?.totalFeeds || 0}</span>
+              <span className="ml-2 font-medium">{contractInfo?.decimals || 0}</span>
             </div>
           </div>
         </CardContent>
@@ -181,8 +192,8 @@ export const ReflectorOracle = () => {
                     {formatPrice(price.price)}
                   </div>
                   <div className="flex items-center space-x-2 text-sm">
-                    <span className="text-muted-foreground">Confianza:</span>
-                    <span className="font-medium">{(price.confidence * 100).toFixed(1)}%</span>
+                    <span className="text-muted-foreground">Fuente:</span>
+                    <span className="font-medium">{price.source}</span>
                   </div>
                   {priceChange !== 0 && (
                     <div className={`flex items-center space-x-1 text-sm ${

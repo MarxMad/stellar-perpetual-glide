@@ -1,63 +1,77 @@
 import { useState, useEffect } from "react";
-import { useCoinGecko } from "../hooks/use-coingecko";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, BarChart3, DollarSign, Activity, Coins, Calculator, Wallet, Target, PieChart, Settings, ChevronDown, Home } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, DollarSign, Activity, Coins, Calculator, Wallet, Target, PieChart, Settings, ChevronDown, Home, RefreshCw } from "lucide-react";
 import { TradingViewWidget } from "./TradingViewWidget";
 import { AssetSelector, AVAILABLE_ASSETS, Asset } from "./AssetSelector";
 import { OrderBook } from "./OrderBook";
 import { TradeForm } from "./TradeForm";
 import { PositionCard } from "./PositionCard";
-import { ReflectorOracle } from "./ReflectorOracle";
-import { ReflectorStatus } from "./ReflectorStatus";
-import { TradingStats } from "./TradingStats";
-import { LiquidationAlert } from "./LiquidationAlert";
-import { KaleRewards } from "./KaleRewards";
-import { FundingRates } from "./FundingRates";
-import { WalletConnectTech } from "./WalletConnectTech";
-import { ReflectorTest } from "./ReflectorTest";
-import { ReflectorSubscriptions } from "./ReflectorSubscriptions";
-import { WebhookConfig } from "./WebhookConfig";
-import { useStellarServices } from "@/hooks/use-stellar-services";
+import { ContractTester } from "./ContractTester";
+import { useReflectorEnhanced } from "@/hooks/use-reflector-enhanced";
+import { useWalletContext } from "@/contexts/WalletContext";
+import { usePriceOracle } from "@/hooks/use-price-oracle";
+import { useCoinGeckoPrices } from "@/hooks/use-coingecko-prices";
 import { MobileMenu } from "./MobileMenu";
 import { MobileHeader } from "./MobileHeader";
 import { WelcomePage } from "./WelcomePage";
 
 export const TradingDashboard = () => {
-  const { prices, getPrices } = useStellarServices();
+  const { prices, getPrices } = useReflectorEnhanced(false);
+  const { walletInfo, isConnected, connect, disconnect, isConnecting, updateBalance } = useWalletContext();
+  
+  // Usar CoinGecko como fuente principal de precios
+  const { 
+    xlmPrice: coinGeckoXlmPrice, 
+    isLoading: coinGeckoLoading, 
+    error: coinGeckoError,
+    priceChange24h 
+  } = useCoinGeckoPrices(true, 30000); // Auto-refresh cada 30 segundos
+  
+  // Fallback al Price Oracle si CoinGecko falla
+  const { xlmPrice: oracleXlmPrice, isLoading: priceLoading, error: priceError } = usePriceOracle();
   const [selectedAsset, setSelectedAsset] = useState<Asset>(AVAILABLE_ASSETS[0]); // XLM por defecto
   const [selectedPair, setSelectedPair] = useState("XLM/USDC");
   const [currentPrice, setCurrentPrice] = useState(0.1234);
   const [priceChange, setPriceChange] = useState(2.45);
   const [activeTab, setActiveTab] = useState("trading");
   const [showWelcome, setShowWelcome] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
 
-  // Hook para obtener precios reales de CoinGecko
-  const { price: xlmPrice, loading: priceLoading } = useCoinGecko('stellar');
+  // Obtener precios desde Reflector
+  const { prices: reflectorPrices, isLoading: reflectorLoading } = useReflectorEnhanced(false);
 
-  // Obtener precio actual de XLM desde CoinGecko
+  // Obtener precio actual de XLM - prioridad: CoinGecko > Price Oracle > Reflector > Fallback
   useEffect(() => {
-    if (xlmPrice) {
-      setCurrentPrice(xlmPrice.current_price || 0.1234);
-      setPriceChange(xlmPrice.price_change_percentage_24h || 0);
-      setIsConnected(true);
-    } else if (!priceLoading) {
-      // Fallback a precios simulados si CoinGecko falla
-      const fallbackPrice = prices.find(p => p.asset === 'XLM');
-      if (fallbackPrice) {
-        setCurrentPrice(fallbackPrice.price);
-        setPriceChange(0); // Valor por defecto si no hay cambio disponible
-        setIsConnected(true);
+    if (coinGeckoXlmPrice > 0) {
+      setCurrentPrice(coinGeckoXlmPrice);
+      setPriceChange(priceChange24h || 0); // Usar el cambio real de 24h de CoinGecko
+      console.log('✅ Usando precio de CoinGecko:', coinGeckoXlmPrice, 'Cambio 24h:', priceChange24h);
+    } else if (oracleXlmPrice > 0) {
+      setCurrentPrice(oracleXlmPrice);
+      setPriceChange(0);
+      console.log('✅ Usando precio del Price Oracle:', oracleXlmPrice);
+    } else if (!coinGeckoLoading && !oracleXlmPrice) {
+      // Fallback a Reflector si CoinGecko falla
+      const xlmPriceReflector = reflectorPrices.find(p => p.asset === 'XLM');
+      if (xlmPriceReflector) {
+        setCurrentPrice(xlmPriceReflector.price);
+        setPriceChange(0);
+        console.log('✅ Usando precio de Reflector:', xlmPriceReflector.price);
       } else {
-        setIsConnected(false);
+        // Fallback final a precios simulados
+        const fallbackPrice = prices.find(p => p.asset === 'XLM');
+        if (fallbackPrice) {
+          setCurrentPrice(fallbackPrice.price);
+          setPriceChange(0);
+          console.log('✅ Usando precio de fallback:', fallbackPrice.price);
+        }
       }
     }
-  }, [xlmPrice, priceLoading, prices]);
+  }, [coinGeckoXlmPrice, oracleXlmPrice, coinGeckoLoading, priceLoading, reflectorPrices, prices, priceChange24h]);
 
   // Cargar precios al inicializar
   useEffect(() => {
@@ -99,8 +113,37 @@ export const TradingDashboard = () => {
         isConnected={isConnected} 
       />
 
-      {/* Desktop Header */}
-      <div className="hidden xl:block border-b border-cyan-500/20 bg-slate-900/80 backdrop-blur-sm relative overflow-hidden">
+      {/* Filtro de conexión - solo mostrar contenido si está conectado */}
+      {!isConnected ? (
+        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+          <Card className="max-w-md mx-auto bg-slate-900/90 border-cyan-500/30 backdrop-blur-sm">
+            <CardHeader className="text-center">
+              <CardTitle className="text-cyan-300 flex items-center justify-center space-x-2">
+                <Wallet className="w-6 h-6" />
+                <span>Conecta tu Wallet</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-gray-400 text-sm">
+                Necesitas conectar tu wallet de Stellar para acceder a la plataforma de trading.
+              </p>
+              <Button 
+                onClick={connect} 
+                disabled={isConnecting}
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
+              >
+                {isConnecting ? 'Conectando...' : 'Conectar Wallet'}
+              </Button>
+              <div className="text-xs text-gray-500">
+                Compatible con Freighter, Albedo y otras wallets de Stellar
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <>
+          {/* Desktop Header */}
+      <div className="hidden lg:block border-b border-cyan-500/20 bg-slate-900/80 backdrop-blur-sm relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
         <div className="flex items-center justify-between p-4 relative z-10">
           <div className="flex items-center space-x-4">
@@ -130,62 +173,56 @@ export const TradingDashboard = () => {
               Home
             </Button>
             
-            {/* Desktop Dev Tools */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-cyan-200 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/25">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Dev Tools
-                  <ChevronDown className="h-4 w-4 ml-2" />
+            {/* Wallet info o botón de conectar */}
+            {walletInfo ? (
+              <div className="flex items-center space-x-2">
+                {/* Balance */}
+                <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10">
+                  {walletInfo.balance?.toFixed(2) || '0.00'} XLM
+                </Badge>
+                
+                {/* Dirección truncada */}
+                <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">
+                  {walletInfo.publicKey.slice(0, 4)}...{walletInfo.publicKey.slice(-4)}
+                </Badge>
+                
+                {/* Red */}
+                <Badge variant="outline" className="border-purple-500/50 text-purple-400 bg-purple-500/10">
+                  {walletInfo.network}
+                </Badge>
+                
+                {/* Botón de actualizar balance */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={updateBalance}
+                  className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20"
+                >
+                  <RefreshCw className="w-4 h-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-slate-900/95 border-cyan-500/20 backdrop-blur-sm">
-                <DropdownMenuItem 
-                  className="text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all duration-300"
-                  onClick={() => setActiveTab("oracle")}
+                
+                {/* Botón de desconectar */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={disconnect}
+                  className="border-red-500/30 text-red-300 hover:bg-red-500/20"
                 >
-                  <Activity className="h-4 w-4 mr-2" />
-                  Oracle
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all duration-300"
-                  onClick={() => setActiveTab("subscriptions")}
-                >
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Subscriptions
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all duration-300"
-                  onClick={() => setActiveTab("webhook")}
-                >
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Webhook Config
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all duration-300"
-                  onClick={() => setActiveTab("funding")}
-                >
-                  <Calculator className="h-4 w-4 mr-2" />
-                  Funding Rates
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all duration-300"
-                  onClick={() => setActiveTab("rewards")}
-                >
-                  <Coins className="h-4 w-4 mr-2" />
-                  KALE Rewards
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100 transition-all duration-300"
-                  onClick={() => setActiveTab("test")}
-                >
-                  <Activity className="h-4 w-4 mr-2" />
-                  Test Tools
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <WalletConnectTech />
+                  Disconnect
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={connect}
+                disabled={isConnecting}
+                className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-cyan-200 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/25 flex items-center space-x-2"
+              >
+                <Wallet className="h-4 w-4" />
+                <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -242,7 +279,7 @@ export const TradingDashboard = () => {
         {/* Tabs - Responsive para todas las pantallas */}
         <div className="w-full px-4 py-3">
           <div className="max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-4 p-1 bg-slate-800/90 border border-cyan-500/30 rounded-lg">
+            <TabsList className="grid w-full grid-cols-5 p-1 bg-slate-800/90 border border-cyan-500/30 rounded-lg">
               <TabsTrigger 
                 value="trading" 
                 className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
@@ -278,6 +315,16 @@ export const TradingDashboard = () => {
                 <span className="hidden xs:inline">Stats</span>
                 <span className="xs:hidden">Stats</span>
           </TabsTrigger>
+
+              <TabsTrigger 
+                value="contract" 
+                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
+              >
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Contract</span>
+                <span className="xs:hidden">Contract</span>
+          </TabsTrigger>
+
         </TabsList>
           </div>
         </div>
@@ -298,11 +345,11 @@ export const TradingDashboard = () => {
             <Card className="bg-slate-900/90 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden shadow-2xl shadow-cyan-500/10 h-[400px] xl:h-[500px]">
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-teal-500/10"></div>
               <CardHeader className="relative z-10 p-4 border-b border-cyan-500/20">
-                <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center space-x-2 text-cyan-300 text-lg font-semibold">
                     <BarChart3 className="w-5 h-5 text-cyan-400" />
                     <span>{selectedAsset.symbol}/USDC Price Chart</span>
-                  </CardTitle>
+                      </CardTitle>
                   <div className="flex items-center space-x-2">
                     <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10">
                       {selectedAsset.category.toUpperCase()}
@@ -310,9 +357,9 @@ export const TradingDashboard = () => {
                     <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10">
                       Live
                     </Badge>
-                  </div>
-                </div>
-              </CardHeader>
+                      </div>
+                    </div>
+                  </CardHeader>
               <CardContent className="relative z-10 p-0 h-[calc(100%-80px)]">
                 <TradingViewWidget 
                   symbol={selectedAsset.tradingViewSymbol}
@@ -321,10 +368,10 @@ export const TradingDashboard = () => {
                   height="100%"
                   width="100%"
                 />
-              </CardContent>
-            </Card>
-          </div>
-          
+                  </CardContent>
+                </Card>
+              </div>
+
           {/* Tres Paneles Principales */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 p-4 h-[calc(100vh-700px)] xl:h-[calc(100vh-800px)]">
             
@@ -344,7 +391,7 @@ export const TradingDashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10 p-4 h-[calc(100%-80px)] overflow-auto">
-                  <OrderBook />
+                <OrderBook />
                 </CardContent>
               </Card>
             </div>
@@ -369,7 +416,7 @@ export const TradingDashboard = () => {
                   <TradeForm />
                 </CardContent>
               </Card>
-            </div>
+              </div>
 
             {/* Columna 3: Positions - Más grande y funcional */}
             <div className="xl:col-span-1">
@@ -387,7 +434,7 @@ export const TradingDashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="relative z-10 p-4 h-[calc(100%-80px)] overflow-auto">
-                  <PositionCard />
+              <PositionCard />
                 </CardContent>
               </Card>
             </div>
@@ -464,13 +511,13 @@ export const TradingDashboard = () => {
         <TabsContent value="stats" className="space-y-0 pb-20 xl:pb-8">
           <div className="p-4 space-y-6">
             {/* Trading Statistics */}
-            <TradingStats />
+            {/* Trading stats moved to ContractTester */}
             
             {/* Reflector Status */}
-            <ReflectorStatus />
+            {/* Reflector status moved to ContractTester */}
             
             {/* Liquidation Alerts */}
-            <LiquidationAlert liquidations={[]} />
+            {/* Liquidation alerts moved to ContractTester */}
           </div>
         </TabsContent>
 
@@ -578,38 +625,11 @@ export const TradingDashboard = () => {
           </div>
         </TabsContent>
 
-        {/* Dev Tools Tabs */}
-        <TabsContent value="oracle" className="p-4 pb-20 xl:pb-8">
-          <ReflectorOracle />
+        {/* Contract Tab */}
+        <TabsContent value="contract" className="p-4 pb-20 xl:pb-8">
+          <ContractTester />
         </TabsContent>
 
-        <TabsContent value="subscriptions" className="p-4 pb-20 xl:pb-8">
-          <ReflectorSubscriptions />
-        </TabsContent>
-
-        <TabsContent value="webhook" className="p-4 pb-20 xl:pb-8">
-          <WebhookConfig />
-        </TabsContent>
-
-        <TabsContent value="funding" className="p-4 pb-20 xl:pb-8">
-          <FundingRates />
-        </TabsContent>
-
-        <TabsContent value="rewards" className="p-4 pb-20 xl:pb-8">
-          <KaleRewards />
-        </TabsContent>
-
-        <TabsContent value="test" className="p-4 pb-20 xl:pb-8">
-          <ReflectorTest />
-        </TabsContent>
-
-        <TabsContent value="settings" className="p-4 pb-20 xl:pb-8">
-          <div className="text-center py-8">
-            <Settings className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Configuración</h3>
-            <p className="text-gray-400">Panel de configuración en desarrollo</p>
-          </div>
-        </TabsContent>
       </Tabs>
       </div>
 
@@ -619,6 +639,8 @@ export const TradingDashboard = () => {
         onTabChange={setActiveTab} 
         onGoHome={() => setShowWelcome(true)} 
       />
+        </>
+      )}
     </div>
   );
 };

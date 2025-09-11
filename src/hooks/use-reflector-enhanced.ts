@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { reflectorTestnetClient, reflectorMainnetClient, ReflectorTicker } from '@/lib/reflector-enhanced-client';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createReflectorEnhancedClient, ReflectorTicker } from '@/lib/reflector-enhanced-client';
 import { useWalletSimple } from './use-wallet-simple';
 
 export interface ReflectorPriceData {
@@ -18,34 +18,38 @@ export interface ReflectorContractInfo {
   version: number;
 }
 
-// Hook mejorado para usar Reflector
+// Hook para usar Reflector sin bucles infinitos
 export const useReflectorEnhanced = (useMainnet: boolean = false) => {
   const { walletInfo, isConnected } = useWalletSimple();
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prices, setPrices] = useState<ReflectorPriceData[]>([]);
-  const [tickers, setTickers] = useState<ReflectorTicker[]>([]);
   const [contractInfo, setContractInfo] = useState<ReflectorContractInfo | null>(null);
+  
+  // Usar useRef para evitar recrear el cliente en cada render
+  const clientRef = useRef(createReflectorEnhancedClient(useMainnet));
+  const initializedRef = useRef(false);
 
-  // Obtener el cliente correcto
-  const client = useMainnet ? reflectorMainnetClient : reflectorTestnetClient;
-
-  // Inicializar y obtener información del contrato
+  // Inicializar contrato info una sola vez
   useEffect(() => {
+    if (initializedRef.current) return;
+    
     const initializeContract = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
-        console.log(`🚀 Inicializando Reflector en ${useMainnet ? 'Mainnet' : 'Testnet'}...`);
-        
-        const info = await client.getContractInfo();
-        setContractInfo(info);
-        
-        console.log(`✅ Reflector inicializado:`, info);
+        const info = await clientRef.current.getContractInfo();
+        setContractInfo({
+          contractId: info.contractId,
+          isActive: true,
+          decimals: 7,
+          network: useMainnet ? 'mainnet' : 'testnet',
+          version: 1
+        });
+        initializedRef.current = true;
       } catch (err) {
-        console.error('Error initializing Reflector:', err);
         setError(err instanceof Error ? err.message : 'Error initializing Reflector');
       } finally {
         setIsLoading(false);
@@ -53,156 +57,81 @@ export const useReflectorEnhanced = (useMainnet: boolean = false) => {
     };
 
     initializeContract();
-  }, [client, useMainnet]);
+  }, [useMainnet]);
 
-  // Cargar tickers disponibles
-  const loadTickers = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log('📊 Cargando tickers disponibles...');
-      const availableTickers = await client.getAvailableTickers();
-      setTickers(availableTickers);
-      
-      console.log(`✅ Tickers cargados: ${availableTickers.length} disponibles`);
-    } catch (err) {
-      console.error('Error loading tickers:', err);
-      setError(err instanceof Error ? err.message : 'Error loading tickers');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client]);
-
-  // Obtener precios de múltiples activos
+  // Obtener precios de activos
   const getPrices = useCallback(async (assets: string[]) => {
     try {
       setIsLoading(true);
       setError(null);
+
+      const assetObjects = assets.map(asset => ({ Other: asset }));
+      const prices = await clientRef.current.getLastPrices(assetObjects);
       
-      console.log(`💰 Obteniendo precios para activos:`, assets);
-      const priceData = await client.getMultiplePrices(assets);
-      
-      const formattedPrices: ReflectorPriceData[] = Object.entries(priceData).map(([asset, data]) => ({
-        asset,
-        price: data.price,
-        timestamp: data.timestamp,
-        decimals: data.decimals,
-        source: data.source
-      }));
-      
-      setPrices(formattedPrices);
-      console.log(`✅ Precios obtenidos:`, formattedPrices);
-      
-      return formattedPrices;
+      const priceData: ReflectorPriceData[] = assets.map(asset => {
+        const priceInfo = prices.get(asset);
+        if (priceInfo) {
+          return {
+            asset,
+            price: parseFloat(priceInfo.price) / 10000000, // Convertir de stroops
+            timestamp: parseInt(priceInfo.timestamp),
+            decimals: 7,
+            source: 'contract' as const
+          };
+        }
+        return {
+          asset,
+          price: 0,
+          timestamp: Date.now(),
+          decimals: 7,
+          source: 'mock' as const
+        };
+      });
+
+      setPrices(priceData);
     } catch (err) {
-      console.error('Error getting prices:', err);
       setError(err instanceof Error ? err.message : 'Error getting prices');
-      return [];
     } finally {
       setIsLoading(false);
     }
-  }, [client]);
+  }, []);
 
-  // Obtener precio de un activo específico
+  // Obtener precio individual
   const getPrice = useCallback(async (asset: string) => {
     try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log(`💰 Obteniendo precio para ${asset}...`);
-      const priceData = await client.getLastPrice(asset);
-      
-      const formattedPrice: ReflectorPriceData = {
-        asset,
-        price: priceData.price,
-        timestamp: priceData.timestamp,
-        decimals: priceData.decimals,
-        source: priceData.source
-      };
-      
-      console.log(`✅ Precio obtenido para ${asset}:`, formattedPrice);
-      return formattedPrice;
-    } catch (err) {
-      console.error(`Error getting price for ${asset}:`, err);
-      setError(err instanceof Error ? err.message : `Error getting price for ${asset}`);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client]);
-
-  // Obtener precio en tiempo real (simulado con polling)
-  const getRealTimePrice = useCallback((asset: string, callback: (price: ReflectorPriceData) => void, interval: number = 30000) => {
-    const fetchPrice = async () => {
-      try {
-        const price = await getPrice(asset);
-        if (price) {
-          callback(price);
-        }
-      } catch (err) {
-        console.error('Error in real-time price fetch:', err);
+      const priceData = await clientRef.current.getLastPrice({ Other: asset });
+      if (priceData) {
+        return {
+          asset,
+          price: parseFloat(priceData.price) / 10000000,
+          timestamp: parseInt(priceData.timestamp),
+          decimals: 7,
+          source: 'contract' as const
+        };
       }
-    };
-
-    // Obtener precio inmediatamente
-    fetchPrice();
-
-    // Configurar polling
-    const intervalId = setInterval(fetchPrice, interval);
-
-    // Retornar función de limpieza
-    return () => clearInterval(intervalId);
-  }, [getPrice]);
-
-  // Verificar si un activo está disponible
-  const isAssetAvailable = useCallback((asset: string, source?: 'pubnet' | 'exchanges') => {
-    if (source) {
-      return tickers.some(ticker => ticker.symbol === asset && ticker.source === source);
+      return null;
+    } catch (err) {
+      return null;
     }
-    return tickers.some(ticker => ticker.symbol === asset);
-  }, [tickers]);
-
-  // Obtener activos disponibles por fuente
-  const getAssetsBySource = useCallback((source: 'pubnet' | 'exchanges') => {
-    return tickers.filter(ticker => ticker.source === source).map(ticker => ticker.symbol);
-  }, [tickers]);
+  }, []);
 
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  // Cambiar red
-  const switchNetwork = useCallback((newUseMainnet: boolean) => {
-    setPrices([]);
-    setTickers([]);
-    setContractInfo(null);
-    setError(null);
-  }, []);
-
   return {
-    // Estado
     isLoading,
     error,
     prices,
-    tickers,
     contractInfo,
     isConnected,
     userAddress: walletInfo?.publicKey,
+    contractId: contractInfo?.contractId || '',
+    rpcUrl: useMainnet ? 'https://soroban-mainnet.stellar.org:443' : 'https://soroban-testnet.stellar.org:443',
     network: useMainnet ? 'mainnet' : 'testnet',
-    
-    // Métodos
     getPrices,
     getPrice,
-    getRealTimePrice,
-    loadTickers,
-    isAssetAvailable,
-    getAssetsBySource,
     clearError,
-    switchNetwork,
-    
-    // Cliente directo (para uso avanzado)
-    client
   };
 };

@@ -1,0 +1,23 @@
+# Stellar Mainnet Configuration for Perpetual Futures Contract
+# Copy this file to .env and fill in your values
+
+# Stellar Network Configuration
+STELLAR_NETWORK=mainnet
+STELLAR_RPC_URL=https://rpc-mainnet.stellar.org
+STELLAR_NETWORK_PASSPHRASE=Public Global Stellar Network ; September 2015
+
+# Contract Configuration
+PERPETUAL_CONTRACT_ID=PLACEHOLDER_CONTRACT_ID
+WALLET_SECRET_KEY=PLACEHOLDER_SECRET_KEY
+ADMIN_ADDRESS=PLACEHOLDER_ADMIN_ADDRESS
+
+# Trading Configuration
+MAX_LEVERAGE=5
+MAX_POSITIONS_PER_USER=10
+PRICE_STALENESS_THRESHOLD=300
+MINIMUM_POSITION_SIZE=10000000
+LIQUIDATION_THRESHOLD=8000
+
+# Demo Configuration
+DEMO_MODE=true
+MOCK_PRICES=true
