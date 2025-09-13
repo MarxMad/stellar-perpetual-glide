@@ -277,55 +277,81 @@ export const TradingDashboard = () => {
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Tabs - Responsive para todas las pantallas */}
-        <div className="w-full px-4 py-3">
+        <div className="w-full px-4 py-6">
           <div className="max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-5 p-1 bg-slate-800/90 border border-cyan-500/30 rounded-lg">
-              <TabsTrigger 
-                value="trading" 
-                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
-              >
-                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Trading</span>
-                <span className="xs:hidden">Trade</span>
-          </TabsTrigger>
+            {/* Barra de navegación personalizada */}
+            <div className="relative">
+              {/* Fondo de la barra */}
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-800/90 via-slate-700/90 to-slate-800/90 rounded-2xl border border-slate-600/50 shadow-2xl"></div>
               
-              <TabsTrigger 
-                value="positions" 
-                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
-              >
-                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Positions</span>
-                <span className="xs:hidden">Pos</span>
-          </TabsTrigger>
-              
-              <TabsTrigger 
-                value="portfolio" 
-                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
-              >
-                <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Portfolio</span>
-                <span className="xs:hidden">Port</span>
-          </TabsTrigger>
+              {/* Contenido de la barra */}
+              <div className="relative flex items-center justify-between px-2 py-2">
+                {/* Botón Trading */}
+                <button
+                  onClick={() => setActiveTab("trading")}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === "trading"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
+                      : "text-slate-300 hover:text-cyan-400 hover:bg-slate-600/50"
+                  }`}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Trading</span>
+                </button>
 
-              <TabsTrigger 
-                value="stats" 
-                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
-              >
-                <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Stats</span>
-                <span className="xs:hidden">Stats</span>
-          </TabsTrigger>
+                {/* Botón Positions */}
+                <button
+                  onClick={() => setActiveTab("positions")}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === "positions"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
+                      : "text-slate-300 hover:text-cyan-400 hover:bg-slate-600/50"
+                  }`}
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Positions</span>
+                </button>
 
-              <TabsTrigger 
-                value="contract" 
-                className="flex items-center justify-center space-x-1 sm:space-x-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-md py-2 sm:py-3 px-2 sm:px-4 text-gray-300 font-medium transition-all duration-200 hover:bg-cyan-500/20 hover:text-cyan-300 text-sm sm:text-base"
-              >
-                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Contract</span>
-                <span className="xs:hidden">Contract</span>
-          </TabsTrigger>
+                {/* Botón Portfolio */}
+                <button
+                  onClick={() => setActiveTab("portfolio")}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === "portfolio"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
+                      : "text-slate-300 hover:text-cyan-400 hover:bg-slate-600/50"
+                  }`}
+                >
+                  <Wallet className="w-5 h-5" />
+                  <span>Portfolio</span>
+                </button>
 
-        </TabsList>
+                {/* Botón Stats */}
+                <button
+                  onClick={() => setActiveTab("stats")}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === "stats"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
+                      : "text-slate-300 hover:text-cyan-400 hover:bg-slate-600/50"
+                  }`}
+                >
+                  <Activity className="w-5 h-5" />
+                  <span>Stats</span>
+                </button>
+
+                {/* Botón Contract */}
+                <button
+                  onClick={() => setActiveTab("contract")}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === "contract"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
+                      : "text-slate-300 hover:text-cyan-400 hover:bg-slate-600/50"
+                  }`}
+                >
+                  <Settings className="w-5 h-5" />
+                  <span>Contract</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -337,6 +363,8 @@ export const TradingDashboard = () => {
               selectedAsset={selectedAsset} 
               onAssetChange={handleAssetChange}
               className="max-w-md mx-auto"
+              realXlmPrice={coinGeckoXlmPrice}
+              realXlmChange={priceChange24h}
             />
           </div>
           

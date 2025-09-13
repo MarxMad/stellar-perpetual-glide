@@ -50,6 +50,9 @@ export const ContractTester: React.FC = () => {
     leverage: '2'
   });
 
+  // Obtener dirección del usuario
+  const userAddress = walletInfo?.publicKey;
+
   // Abrir posición (ahora incluye transferencia directa de XLM)
   const handleOpenPosition = async () => {
     try {
@@ -223,58 +226,31 @@ export const ContractTester: React.FC = () => {
         </CardHeader>
       </Card>
 
-      {/* Deposit/Withdraw */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>💰 Depositar XLM</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="deposit-amount">Monto (XLM)</Label>
-              <Input
-                id="deposit-amount"
-                type="number"
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                placeholder="10"
-              />
-            </div>
-            <Button 
-              onClick={handleDeposit} 
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading ? 'Procesando...' : 'Depositar'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>💸 Retirar XLM</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="withdraw-amount">Monto (XLM)</Label>
-              <Input
-                id="withdraw-amount"
-                type="number"
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder="5"
-              />
-            </div>
-            <Button 
-              onClick={handleWithdraw} 
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading ? 'Procesando...' : 'Retirar'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Withdraw (Admin Only) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>💸 Retirar XLM (Admin)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="withdraw-amount">Monto (XLM)</Label>
+            <Input
+              id="withdraw-amount"
+              type="number"
+              value={withdrawAmount}
+              onChange={(e) => setWithdrawAmount(e.target.value)}
+              placeholder="5"
+            />
+          </div>
+          <Button 
+            onClick={handleWithdraw} 
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? 'Procesando...' : 'Retirar'}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Position Management */}
       <Card>
@@ -310,16 +286,6 @@ export const ContractTester: React.FC = () => {
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="amount">Tamaño</Label>
-              <Input
-                id="amount"
-                type="number"
-                value={positionForm.amount}
-                onChange={(e) => setPositionForm(prev => ({ ...prev, amount: e.target.value }))}
-                placeholder="100"
-              />
-            </div>
 
             <div>
               <Label htmlFor="leverage">Leverage</Label>
@@ -419,12 +385,12 @@ export const ContractTester: React.FC = () => {
             </Button>
             
             <Button
-              onClick={checkInitialization}
+              onClick={getXlmPrice}
               disabled={priceLoading}
               variant="outline"
               className="w-full"
             >
-              Verificar Inicialización
+              Actualizar Precio
             </Button>
           </div>
 
@@ -458,16 +424,16 @@ export const ContractTester: React.FC = () => {
             <Button onClick={handleGetConfig} disabled={isLoading}>
               Configuración
             </Button>
-            <Button onClick={handleGetVersion} disabled={isLoading}>
-              Versión
+            <Button onClick={refreshData} disabled={isLoading}>
+              Actualizar Datos
             </Button>
           </div>
 
-          {contractConfig && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold mb-2">Configuración Actual:</h4>
-              <pre className="text-xs text-gray-600">
-                {JSON.stringify(contractConfig, null, 2)}
+          {contractStats && (
+            <div className="mt-4 p-4 bg-slate-800/30 rounded-lg">
+              <h4 className="font-semibold mb-2 text-slate-300">Estadísticas del Contrato:</h4>
+              <pre className="text-xs text-slate-400">
+                {JSON.stringify(contractStats, null, 2)}
               </pre>
             </div>
           )}

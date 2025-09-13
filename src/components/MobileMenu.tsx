@@ -3,7 +3,8 @@ import {
   TrendingUp, 
   Wallet, 
   Home,
-  Settings
+  Settings,
+  Wrench
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,8 @@ export const MobileMenu = ({ activeTab, onTabChange, onGoHome }: MobileMenuProps
     { id: "trading", label: "Trading", icon: BarChart3 },
     { id: "positions", label: "Positions", icon: TrendingUp },
     { id: "portfolio", label: "Portfolio", icon: Wallet },
+    { id: "stats", label: "Stats", icon: TrendingUp },
+    { id: "contract", label: "Contract", icon: Wrench },
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -34,15 +37,15 @@ export const MobileMenu = ({ activeTab, onTabChange, onGoHome }: MobileMenuProps
         {/* Efecto de fondo */}
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-teal-500/5"></div>
         
-        <div className="flex items-center justify-around py-4 px-3 relative z-10">
+        <div className="flex items-center justify-between py-3 px-2 relative z-10">
           {/* Botón Home */}
           {onGoHome && (
             <button
               onClick={onGoHome}
-              className="flex flex-col items-center space-y-1 p-3 rounded-lg transition-all duration-300 hover:bg-cyan-500/20 min-w-[60px]"
+              className="flex flex-col items-center space-y-1 p-2 rounded-lg transition-all duration-300 hover:bg-cyan-500/20 min-w-[50px]"
             >
-              <div className="w-7 h-7 flex items-center justify-center">
-                <Home className="w-6 h-6 text-cyan-400" />
+              <div className="w-6 h-6 flex items-center justify-center">
+                <Home className="w-5 h-5 text-cyan-400" />
               </div>
               <span className="text-xs text-cyan-400 font-medium">Home</span>
             </button>
@@ -58,17 +61,17 @@ export const MobileMenu = ({ activeTab, onTabChange, onGoHome }: MobileMenuProps
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
                 className={cn(
-                  "flex flex-col items-center space-y-1 p-3 rounded-lg transition-all duration-300 relative min-w-[60px]",
+                  "flex flex-col items-center space-y-1 p-2 rounded-lg transition-all duration-300 relative min-w-[50px] group",
                   isActive
                     ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-400/30"
                     : "text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300"
                 )}
               >
                 {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 rounded-lg animate-pulse"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 rounded-lg"></div>
                 )}
-                <div className="w-7 h-7 flex items-center justify-center relative z-10">
-                  <Icon className="w-6 h-6" />
+                <div className="w-6 h-6 flex items-center justify-center relative z-10">
+                  <Icon className="w-5 h-5" />
                 </div>
                 <span className="text-xs font-medium relative z-10">{tab.label}</span>
                 
@@ -79,22 +82,6 @@ export const MobileMenu = ({ activeTab, onTabChange, onGoHome }: MobileMenuProps
               </button>
             );
           })}
-
-          {/* Botón de configuración */}
-          <button
-            onClick={() => onTabChange("settings")}
-            className={cn(
-              "flex flex-col items-center space-y-1 p-3 rounded-lg transition-all duration-300 min-w-[60px]",
-              activeTab === "settings"
-                ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-400/30"
-                : "text-cyan-400 hover:bg-cyan-500/20 hover:text-cyan-300"
-            )}
-          >
-            <div className="w-7 h-7 flex items-center justify-center">
-              <Settings className="w-6 h-6" />
-            </div>
-            <span className="text-xs font-medium">Settings</span>
-          </button>
         </div>
       </div>
     </div>

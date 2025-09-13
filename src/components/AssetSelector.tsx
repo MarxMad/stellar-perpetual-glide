@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, TrendingUp, TrendingDown, Star, Coins } from 'lucide-react';
+import { useSimplePrices } from '../hooks/use-simple-prices';
 
 export interface Asset {
   symbol: string;
@@ -27,6 +28,8 @@ interface AssetSelectorProps {
   selectedAsset: Asset;
   onAssetChange: (asset: Asset) => void;
   className?: string;
+  realXlmPrice?: number;
+  realXlmChange?: number;
 }
 
 // Los 10 activos más importantes de Stellar y el mercado
@@ -150,8 +153,64 @@ export const AVAILABLE_ASSETS: Asset[] = [
   }
 ];
 
-export const AssetSelector = ({ selectedAsset, onAssetChange, className = '' }: AssetSelectorProps) => {
+export const AssetSelector = ({ selectedAsset, onAssetChange, className = '', realXlmPrice, realXlmChange }: AssetSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Obtener precios simples de los activos principales
+  const { prices: realPrices, isLoading: pricesLoading, error: pricesError } = useSimplePrices(
+    true, // auto-refresh
+    300000 // cada 5 minutos para evitar rate limiting
+  );
+
+  // Crear una versión actualizada del asset seleccionado con precio real
+  const getDisplayAsset = (asset: Asset) => {
+    const realPrice = realPrices.find(p => p.symbol === asset.symbol);
+    if (realPrice && realPrice.price > 0) {
+      return {
+        ...asset,
+        price: realPrice.price,
+        change24h: realPrice.change24h
+        // Mantener volume24h y marketCap originales del asset
+      };
+    }
+    // Fallback a props específicas para XLM si no hay datos reales
+    if (asset.symbol === 'XLM' && realXlmPrice && realXlmChange !== undefined) {
+      return {
+        ...asset,
+        price: realXlmPrice,
+        change24h: realXlmChange
+      };
+    }
+    return asset;
+  };
+
+  const displayAsset = getDisplayAsset(selectedAsset);
+
+  // Crear una versión actualizada de AVAILABLE_ASSETS con precios reales
+  const getUpdatedAssets = () => {
+    return AVAILABLE_ASSETS.map(asset => {
+      const realPrice = realPrices.find(p => p.symbol === asset.symbol);
+      if (realPrice && realPrice.price > 0) {
+        return {
+          ...asset,
+          price: realPrice.price,
+          change24h: realPrice.change24h
+          // Mantener volume24h y marketCap originales del asset
+        };
+      }
+      // Fallback a props específicas para XLM si no hay datos reales
+      if (asset.symbol === 'XLM' && realXlmPrice && realXlmChange !== undefined) {
+        return {
+          ...asset,
+          price: realXlmPrice,
+          change24h: realXlmChange
+        };
+      }
+      return asset;
+    });
+  };
+
+  const updatedAssets = getUpdatedAssets();
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -212,15 +271,15 @@ export const AssetSelector = ({ selectedAsset, onAssetChange, className = '' }: 
             className="w-full justify-between p-4 h-auto border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-cyan-200 transition-all duration-300"
           >
             <div className="flex items-center space-x-3">
-              {getCategoryIcon(selectedAsset.category)}
+              {getCategoryIcon(displayAsset.category)}
               <div className="text-left">
-                <div className="font-semibold text-lg">{selectedAsset.symbol}</div>
-                <div className="text-sm text-gray-400">{selectedAsset.name}</div>
+                <div className="font-semibold text-lg">{displayAsset.symbol}</div>
+                <div className="text-sm text-gray-400">{displayAsset.name}</div>
               </div>
             </div>
             <div className="text-right">
-              <div className="font-bold text-lg">{formatPrice(selectedAsset.price)}</div>
-              {formatChange(selectedAsset.change24h)}
+              <div className="font-bold text-lg">{formatPrice(displayAsset.price)}</div>
+              {formatChange(displayAsset.change24h)}
             </div>
             <ChevronDown className="w-4 h-4 ml-2" />
           </Button>
@@ -228,14 +287,22 @@ export const AssetSelector = ({ selectedAsset, onAssetChange, className = '' }: 
         
         <DropdownMenuContent className="w-96 bg-slate-900/95 border-cyan-500/20 backdrop-blur-sm">
           <div className="p-3">
-            <div className="text-sm font-semibold text-cyan-300 mb-2">Seleccionar Activo</div>
-            <div className="text-xs text-gray-400 mb-3">{selectedAsset.description}</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-semibold text-cyan-300">Seleccionar Activo</div>
+              {pricesLoading && (
+                <div className="text-xs text-cyan-400 animate-pulse">Actualizando precios...</div>
+              )}
+            </div>
+            <div className="text-xs text-gray-400 mb-3">{displayAsset.description}</div>
+            {pricesError && (
+              <div className="text-xs text-red-400 mb-2">⚠️ Error cargando precios: {pricesError}</div>
+            )}
           </div>
           
           <DropdownMenuSeparator className="bg-cyan-500/20" />
           
           <div className="max-h-80 overflow-y-auto">
-            {AVAILABLE_ASSETS.map((asset) => (
+            {updatedAssets.map((asset) => (
               <DropdownMenuItem
                 key={asset.symbol}
                 onClick={() => {
@@ -267,11 +334,11 @@ export const AssetSelector = ({ selectedAsset, onAssetChange, className = '' }: 
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="text-center">
                 <div className="text-gray-400">Volumen 24h</div>
-                <div className="text-cyan-300 font-semibold">{selectedAsset.volume24h}</div>
+                <div className="text-cyan-300 font-semibold">{displayAsset.volume24h}</div>
               </div>
               <div className="text-center">
                 <div className="text-gray-400">Market Cap</div>
-                <div className="text-cyan-300 font-semibold">{selectedAsset.marketCap}</div>
+                <div className="text-cyan-300 font-semibold">{displayAsset.marketCap}</div>
               </div>
             </div>
           </div>
